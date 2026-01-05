@@ -2,6 +2,7 @@ import path from "path";
 import fs from "fs-extra";
 import { deepmerge } from "deepmerge-ts";
 import { parseModule, generateCode } from "magicast";
+import { generateDockerCompose, generateDockerfile } from "./docker";
 
 export async function copyTemplate(
   templateName: string,
@@ -10,6 +11,9 @@ export async function copyTemplate(
 ) {
   const basePath = path.join(__dirname, "..", "templates", templateName);
   const basicTemplatePath = path.join(basePath, "base");
+
+  // Tracker les scripts setup.sh à exécuter
+  const setupScripts: Array<{ name: string; path: string }> = [];
 
   try {
     // Supprime la destination existante
@@ -24,6 +28,12 @@ export async function copyTemplate(
       if (!(await fs.pathExists(modulePath))) {
         console.warn(`Module "${moduleName}" introuvable à ${modulePath}`);
         continue;
+      }
+
+      // Vérifier si ce module a un setup.sh
+      const setupShPath = path.join(modulePath, "setup.sh");
+      if (await fs.pathExists(setupShPath)) {
+        setupScripts.push({ name: moduleName, path: setupShPath });
       }
 
       // Parcours tous les fichiers du module
@@ -57,14 +67,42 @@ export async function copyTemplate(
 
           const mergedContent = mergeEnvExample(existingContent, moduleContent, moduleName);
           await fs.writeFile(destPath, mergedContent, "utf-8");
+        } else if (moduleName === "docker" && (file.name === "docker-compose.yml" || file.name === "Dockerfile")) {
+          // Ignorer ces fichiers pour le module docker, on les générera dynamiquement
+        } else if (file.name === "setup.sh") {
+          // Ignorer setup.sh, il sera exécuté mais pas copié
         } else {
           // Copie le fichier s'il n'existe pas
           await fs.copy(srcPath, destPath, { overwrite: true });
         }
       }
     }
+
+    // Génération dynamique des fichiers Docker si le module docker est présent
+    if (modules.includes("docker")) {
+      const dockerCompose = generateDockerCompose(modules);
+      await fs.writeFile(
+        path.join(destination, "docker-compose.yml"),
+        dockerCompose,
+        "utf-8"
+      );
+
+      const dockerfile = generateDockerfile(modules);
+      await fs.writeFile(
+        path.join(destination, "Dockerfile"),
+        dockerfile,
+        "utf-8"
+      );
+    }
+
+    return {
+      setupScripts
+    };
   } catch (err) {
     console.error("Erreur lors de la copie du template :", err);
+    return {
+      setupScripts: []
+    };
   }
 }
 
@@ -184,7 +222,6 @@ function mergeImports(existing: string[], incoming: string[]): string[] {
     });
 
     if (!alreadyExists) {
-      console.log('  📦 Ajout de l\'import:', incomingImport);
       merged.push(incomingImport);
     }
   }

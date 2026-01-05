@@ -7,16 +7,13 @@
     "dev": "nuxt dev",
     "generate": "nuxt generate",
     "preview": "nuxt preview",
-    "postinstall": "nuxt prepare && prisma generate"
+    "postinstall": "nuxt prepare"
   },
   "dependencies": {
-    "@prisma/adapter-pg": "^7.2.0",
-    "@prisma/client": "^7.2.0",
     "nuxt": "^4.2.2",
     "vue": "^3.5.26",
-    "vue-router": "^4.6.4"
+    "vue-router": "^4.6.4",
+    "@tailwindcss/vite": "^4.1.18"
   },
-  "devDependencies": {
-    "prisma": "^5.22.0"
-  }
+  "devDependencies": {}
 }
