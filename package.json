@@ -1,13 +1,13 @@
 {
-  "name": "cli",
+  "name": "kite-cli",
   "version": "1.0.0",
-  "description": "",
+  "description": "CLI de scaffolding pour créer des projets web modernes",
   "license": "ISC",
   "author": "",
   "type": "commonjs",
   "main": "index.js",
   "bin": {
-    "mycli": "dist/index.js"
+    "kite": "dist/index.js"
   },
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1",
