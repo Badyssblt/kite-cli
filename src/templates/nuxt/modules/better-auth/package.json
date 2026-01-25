@@ -1,0 +1,11 @@
+{
+  "name": "nuxt-app",
+  "type": "module",
+  "private": true,
+  "dependencies": {
+    "better-auth": "^1.4.17"
+  },
+  "devDependencies": {
+    "@better-auth/cli": "^1.2.0"
+  }
+}

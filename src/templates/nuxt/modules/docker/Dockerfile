@@ -1,4 +1,4 @@
-FROM node:20-alpine
+FROM node:20-slim
 
 WORKDIR /app
 
@@ -7,6 +7,9 @@ COPY package*.json ./
 RUN npm ci
 
 COPY . .
+
+# Générer le client Prisma si le fichier schema existe
+RUN if [ -f "prisma/schema.prisma" ]; then npx prisma generate; fi
 
 RUN npm run build
 

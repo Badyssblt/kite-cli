@@ -9,12 +9,13 @@ import { tailwindModule } from './modules/tailwind';
 import { shadcnModule } from './modules/shadcn';
 import { piniaModule } from './modules/pinia';
 import { nuxtUiModule } from './modules/nuxt-ui';
-import { nuxtAuthModule } from './modules/nuxt-auth';
+import { betterAuthModule } from './modules/better-auth';
 import { supabaseModule } from './modules/supabase';
 import { i18nModule } from './modules/i18n';
 import { eslintModule } from './modules/eslint';
 import { vitestModule } from './modules/vitest';
 import { dockerModule } from './modules/docker';
+import { debug } from '../../utils/debug';
 
 export class NuxtFramework extends BaseFramework {
   id = 'nuxt';
@@ -26,7 +27,7 @@ export class NuxtFramework extends BaseFramework {
   modules: ModuleDefinition[] = [
     prismaModule,
     supabaseModule,
-    nuxtAuthModule,
+    betterAuthModule,
     piniaModule,
     nuxtUiModule,
     shadcnModule,
@@ -38,36 +39,33 @@ export class NuxtFramework extends BaseFramework {
   ];
 
   dockerfileTemplate(modules: string[]): string {
-    let dockerfile = `FROM node:20-alpine
+    let extraDockerSetup = '';
+    if (modules.includes(prismaModule.id)) {
+      extraDockerSetup = `
+COPY prisma ./prisma
+RUN npx prisma generate
+      `;
+    }
+    
+
+    let dockerfile = `FROM node:20
 
 WORKDIR /app
 
+# Installation des dépendances uniquement (le code est monté en volume)
 COPY package*.json ./
+RUN npm install
 
-RUN npm ci
 
-COPY . .
-`;
-
-    // Si Prisma est présent, générer le client
-    if (modules.includes('prisma')) {
-      dockerfile += `
-# Generate Prisma Client
-RUN npx prisma generate
-`;
-    }
-
-    dockerfile += `
-RUN npm run build
+${extraDockerSetup}
 
 EXPOSE 3000
 
 ENV NUXT_HOST=0.0.0.0
 ENV NUXT_PORT=3000
 
-CMD ["node", ".output/server/index.mjs"]
+CMD ["npm", "run", "dev"]
 `;
-
     return dockerfile;
   }
 }

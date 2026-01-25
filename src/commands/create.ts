@@ -8,6 +8,7 @@ import { dependencyService } from '../services/dependency.service';
 import { templateService } from '../services/template.service';
 import { setupService } from '../services/setup.service';
 import { promptService } from '../services/prompt.service';
+import type { ModuleAnswers } from '../types';
 
 export const createCommand = new Command('create')
   .description('Create a new project')
@@ -36,15 +37,23 @@ export const createCommand = new Command('create')
       console.log('');
       console.log('📦 Modules ajoutés automatiquement :');
       console.log(dependencyService.getDependencyMessage(addedModules));
-      console.log('');
     }
+
+    // Poser les questions spécifiques à chaque module
+    const moduleAnswers: ModuleAnswers = await promptService.askModuleQuestions(modules);
 
     const projectPath = path.join(process.cwd(), projectName);
 
+    console.log('');
     const spinner = ora('Création du projet...').start();
 
-    // Copier le template
-    const { setupScripts } = await templateService.copyTemplate(framework, projectPath, modules);
+    // Copier le template avec les configurations des modules
+    const { setupScripts } = await templateService.copyTemplate(
+      framework,
+      projectPath,
+      modules,
+      moduleAnswers
+    );
 
     // Copier .env.example vers .env
     await templateService.copyEnvFile(projectPath);

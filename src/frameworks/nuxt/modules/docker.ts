@@ -2,18 +2,18 @@ import type { ModuleDefinition } from '../../../types';
 
 export const dockerModule: ModuleDefinition = {
   id: 'docker',
-  name: 'Docker (Containerisation)',
-  description: 'Containerisation de votre application',
+  name: 'Docker (Développement)',
+  description: 'Environnement de développement containerisé',
   dependsOn: [],
   hasSetupScript: false,
   instructions: {
-    title: 'Docker',
+    title: 'Docker (Dev)',
     steps: [
-      'Le docker-compose.yml a été généré selon vos modules',
-      'Démarrer tous les services: docker-compose up -d',
-      'Voir les logs: docker-compose logs -f',
+      'Démarrer: docker-compose up -d',
+      'Voir les logs: docker-compose logs -f app',
       'Arrêter: docker-compose down',
-      'Note: Si vous avez Prisma, la DB PostgreSQL est incluse'
+      'Le hot-reload est actif (volumes montés)',
+      'Les node_modules sont dans un volume séparé pour la performance'
     ],
     links: ['https://docs.docker.com']
   },
@@ -22,9 +22,13 @@ export const dockerModule: ModuleDefinition = {
       app: {
         build: '.',
         ports: ['3000:3000'],
-        environment: ['NODE_ENV=production'],
-        restart: 'unless-stopped',
-        volumes: ['./:/app']
+        environment: ['NODE_ENV=development'],
+        volumes: [
+          '.:/app',                    // Code source monté
+          '/app/node_modules',         // node_modules isolés dans le container
+          '/app/.nuxt'                 // Cache Nuxt isolé
+        ],
+        restart: 'unless-stopped'
       }
     }
   }

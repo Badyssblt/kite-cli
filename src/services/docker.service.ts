@@ -1,21 +1,36 @@
 // Service de génération Docker
 
-import type { DockerComposeConfig, DockerService as DockerServiceType, FrameworkDefinition } from '../types';
+import type {
+  DockerComposeConfig,
+  DockerService as DockerServiceType,
+  FrameworkDefinition,
+  ModuleConfiguration
+} from '../types';
 import { moduleRegistry } from '../core/module-registry';
 import { toYAML } from '../utils/yaml';
 
 export class DockerGeneratorService {
   // Générer le docker-compose.yml complet
-  generateDockerCompose(modules: string[]): string {
+  generateDockerCompose(
+    modules: string[],
+    moduleConfigs: Map<string, ModuleConfiguration> = new Map()
+  ): string {
     let config: DockerComposeConfig = {
       services: {}
     };
 
     // Merger les configs de chaque module
     for (const moduleId of modules) {
-      const module = moduleRegistry.get(moduleId);
-      if (module?.docker) {
-        config = this.deepMergeDockerConfig(config, module.docker);
+      // Priorité à la config dynamique générée par configure()
+      const dynamicConfig = moduleConfigs.get(moduleId);
+      if (dynamicConfig?.docker) {
+        config = this.deepMergeDockerConfig(config, dynamicConfig.docker);
+      } else {
+        // Sinon utiliser la config statique du module
+        const module = moduleRegistry.get(moduleId);
+        if (module?.docker) {
+          config = this.deepMergeDockerConfig(config, module.docker);
+        }
       }
     }
 

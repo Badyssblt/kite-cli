@@ -2,10 +2,20 @@
 
 import path from 'path';
 import fs from 'fs-extra';
-import type { CopyTemplateResult, FrameworkDefinition, SetupScript } from '../types';
+import type {
+  CopyTemplateResult,
+  FrameworkDefinition,
+  SetupScript,
+  ModuleAnswers,
+  ModuleConfiguration,
+  PromptContext
+} from '../types';
 import { mergeNuxtConfig, mergePackageJson, mergeEnvExample } from './merge.service';
 import { dockerService } from './docker.service';
 import { moduleRegistry } from '../core/module-registry';
+import { PlaceholderService } from './placeholder.service';
+import { variantService, type ResolvedVariant } from './variant.service';
+import { fragmentService } from './fragment.service';
 
 export class TemplateService {
   private templatesPath: string;
@@ -18,12 +28,28 @@ export class TemplateService {
   async copyTemplate(
     framework: FrameworkDefinition,
     destination: string,
-    modules: string[]
+    modules: string[],
+    moduleAnswers: ModuleAnswers = {}
   ): Promise<CopyTemplateResult> {
     const basePath = path.join(this.templatesPath, framework.id);
     const basicTemplatePath = path.join(basePath, 'base');
 
     const setupScripts: SetupScript[] = [];
+
+    // Collecter les configurations générées par les modules
+    const moduleConfigs: Map<string, ModuleConfiguration> = new Map();
+    const context: PromptContext = { selectedModules: modules, answers: moduleAnswers };
+
+    // Générer les configurations pour chaque module qui a des réponses
+    for (const moduleId of modules) {
+      const moduleDef = moduleRegistry.get(moduleId);
+      if (moduleDef?.configure && moduleAnswers[moduleId]) {
+        const config = moduleDef.configure(moduleAnswers[moduleId], context);
+        moduleConfigs.set(moduleId, config);
+      }
+    } 
+
+    const placeholderService = new PlaceholderService()
 
     try {
       // Supprime la destination existante
@@ -38,14 +64,41 @@ export class TemplateService {
           basePath,
           destination,
           moduleName,
-          framework
+          framework,
+          moduleAnswers[moduleName] || {}
         );
+        placeholderService.replacePlaceholderInFile(
+          basePath,
+          moduleName,
+          destination,
+          moduleRegistry.get(moduleName)?.placeholderDefinition || {}
+        );
+
         setupScripts.push(...moduleSetupScripts);
       }
 
+      // Appliquer les configurations des modules (env, docker, etc.)
+      await this.applyModuleConfigurations(destination, modules, moduleConfigs);
+
       // Génération dynamique des fichiers Docker si le module docker est présent
       if (modules.includes('docker')) {
-        await this.generateDockerFiles(framework, destination, modules);
+        await this.generateDockerFiles(framework, destination, modules, moduleConfigs);
+      }
+
+      // Traiter les fragments de chaque module
+      const fragmentContext = { selectedModules: modules, moduleAnswers };
+      for (const moduleName of modules) {
+        const moduleDef = moduleRegistry.get(moduleName);
+        if (moduleDef?.fragments && moduleDef.fragments.length > 0) {
+          const modulePath = path.join(basePath, 'modules', moduleName);
+          await fragmentService.processModuleFragments(
+            modulePath,
+            destination,
+            moduleName,
+            moduleDef.fragments,
+            fragmentContext
+          );
+        }
       }
 
       return { setupScripts };
@@ -55,12 +108,95 @@ export class TemplateService {
     }
   }
 
+  // Appliquer les configurations générées par les modules
+  private async applyModuleConfigurations(
+    destination: string,
+    modules: string[],
+    moduleConfigs: Map<string, ModuleConfiguration>
+  ): Promise<void> {
+    const envPath = path.join(destination, '.env.example');
+    const packageJsonPath = path.join(destination, 'package.json');
+
+    // Collecter toutes les variables d'environnement et dépendances
+    const allEnvVars: Record<string, string> = {};
+    const allDependencies: Record<string, string> = {};
+    const allDevDependencies: Record<string, string> = {};
+
+    for (const [moduleId, config] of moduleConfigs) {
+      if (config.env) {
+        Object.assign(allEnvVars, config.env);
+      }
+      if (config.dependencies) {
+        Object.assign(allDependencies, config.dependencies);
+      }
+      if (config.devDependencies) {
+        Object.assign(allDevDependencies, config.devDependencies);
+      }
+    }
+
+    // Ajouter les variables au fichier .env.example
+    if (Object.keys(allEnvVars).length > 0) {
+      let envContent = '';
+      if (await fs.pathExists(envPath)) {
+        envContent = await fs.readFile(envPath, 'utf-8');
+      }
+
+      // Ajouter les nouvelles variables
+      const newVars: string[] = [];
+      for (const [key, value] of Object.entries(allEnvVars)) {
+        // Ne pas ajouter si déjà présent
+        if (!envContent.includes(`${key}=`)) {
+          newVars.push(`${key}=${value}`);
+        } else {
+          // Mettre à jour la valeur existante
+          envContent = envContent.replace(
+            new RegExp(`^${key}=.*$`, 'm'),
+            `${key}=${value}`
+          );
+        }
+      }
+
+      if (newVars.length > 0) {
+        envContent = envContent.trim() + '\n\n# Configuration générée\n' + newVars.join('\n') + '\n';
+      }
+
+      await fs.writeFile(envPath, envContent, 'utf-8');
+    }
+
+    // Ajouter les dépendances au package.json
+    const hasDependencies = Object.keys(allDependencies).length > 0;
+    const hasDevDependencies = Object.keys(allDevDependencies).length > 0;
+
+    if ((hasDependencies || hasDevDependencies) && await fs.pathExists(packageJsonPath)) {
+      const packageJson = await fs.readJson(packageJsonPath);
+
+      if (hasDependencies) {
+        packageJson.dependencies = {
+          ...packageJson.dependencies,
+          ...allDependencies
+        };
+      }
+
+      if (hasDevDependencies) {
+        packageJson.devDependencies = {
+          ...packageJson.devDependencies,
+          ...allDevDependencies
+        };
+      }
+
+      await fs.writeJson(packageJsonPath, packageJson, { spaces: 2 });
+    }
+  }
+
+
+
   // Copier un module et retourner ses scripts setup
   private async copyModule(
     basePath: string,
     destination: string,
     moduleName: string,
-    framework: FrameworkDefinition
+    framework: FrameworkDefinition,
+    moduleAnswers: Record<string, string | boolean> = {}
   ): Promise<SetupScript[]> {
     const modulePath = path.join(basePath, 'modules', moduleName);
     const setupScripts: SetupScript[] = [];
@@ -79,15 +215,50 @@ export class TemplateService {
       }
     }
 
-    // Parcours tous les fichiers du module
-    const files = await fs.readdir(modulePath, { withFileTypes: true });
+    // Résoudre les variantes de fichiers si le module en définit
+    let resolvedVariants: ResolvedVariant[] = [];
+    if (moduleDefinition?.fileVariants && Object.keys(moduleAnswers).length > 0) {
+      resolvedVariants = await variantService.resolveVariants(
+        modulePath,
+        moduleDefinition.fileVariants,
+        moduleAnswers
+      );
+    }
+
+    // Copier les fichiers du module récursivement
+    await this.copyModuleFiles(modulePath, destination, framework, moduleName, '');
+
+    // Copier les fichiers variantes (écrase les fichiers par défaut)
+    if (resolvedVariants.length > 0) {
+      await variantService.copyVariants(resolvedVariants, destination);
+    }
+
+    return setupScripts;
+  }
+
+  // Copier les fichiers d'un module récursivement en ignorant _variants
+  private async copyModuleFiles(
+    srcDir: string,
+    destination: string,
+    framework: FrameworkDefinition,
+    moduleName: string,
+    relativePath: string
+  ): Promise<void> {
+    const files = await fs.readdir(srcDir, { withFileTypes: true });
 
     for (const file of files) {
-      const srcPath = path.join(modulePath, file.name);
-      const destPath = path.join(destination, file.name);
+      const srcPath = path.join(srcDir, file.name);
+      const fileRelativePath = relativePath ? path.join(relativePath, file.name) : file.name;
+      const destPath = path.join(destination, fileRelativePath);
 
       if (file.isDirectory()) {
-        await fs.copy(srcPath, destPath, { overwrite: true });
+        // Ignorer les dossiers _variants et _fragments
+        if (variantService.isVariantsFolder(file.name) || file.name === '_fragments') {
+          continue;
+        }
+        // Copie récursive des sous-dossiers
+        await fs.ensureDir(destPath);
+        await this.copyModuleFiles(srcPath, destination, framework, moduleName, fileRelativePath);
       } else if (file.name === framework.configFileName && (await fs.pathExists(destPath))) {
         await this.mergeConfigFile(framework, srcPath, destPath);
       } else if (file.name === 'package.json' && (await fs.pathExists(destPath))) {
@@ -102,8 +273,6 @@ export class TemplateService {
         await fs.copy(srcPath, destPath, { overwrite: true });
       }
     }
-
-    return setupScripts;
   }
 
   // Merger un fichier de configuration selon la stratégie du framework
@@ -155,9 +324,10 @@ export class TemplateService {
   private async generateDockerFiles(
     framework: FrameworkDefinition,
     destination: string,
-    modules: string[]
+    modules: string[],
+    moduleConfigs: Map<string, ModuleConfiguration>
   ): Promise<void> {
-    const dockerCompose = dockerService.generateDockerCompose(modules);
+    const dockerCompose = dockerService.generateDockerCompose(modules, moduleConfigs);
     await fs.writeFile(
       path.join(destination, 'docker-compose.yml'),
       dockerCompose,
