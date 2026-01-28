@@ -1,0 +1,10 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "{{PROVIDER}}"
+  url      = env("DATABASE_URL")
+}
+
+// Ajoutez vos modèles ici

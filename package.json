@@ -7,11 +7,14 @@
   "type": "commonjs",
   "main": "index.js",
   "bin": {
-    "kite": "dist/index.js"
+    "kite": "dist/index.js",
+    "kite-dev": "bin/kite-dev"
   },
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1",
-    "dev": "ts-node src/index.ts"
+    "dev": "ts-node src/index.ts",
+    "build": "tsc && cp -r src/templates dist/",
+    "prepublishOnly": "npm run build"
   },
   "dependencies": {
     "@bartheleway/inquirer-table-multiple": "^1.0.1",

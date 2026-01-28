@@ -11,6 +11,7 @@ import { piniaModule } from './modules/pinia';
 import { nuxtUiModule } from './modules/nuxt-ui';
 import { betterAuthModule } from './modules/better-auth';
 import { supabaseModule } from './modules/supabase';
+import { stripeModule } from './modules/stripe';
 import { i18nModule } from './modules/i18n';
 import { eslintModule } from './modules/eslint';
 import { vitestModule } from './modules/vitest';
@@ -28,6 +29,7 @@ export class NuxtFramework extends BaseFramework {
     prismaModule,
     supabaseModule,
     betterAuthModule,
+    stripeModule,
     piniaModule,
     nuxtUiModule,
     shadcnModule,

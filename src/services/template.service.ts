@@ -246,6 +246,9 @@ export class TemplateService {
   ): Promise<void> {
     const files = await fs.readdir(srcDir, { withFileTypes: true });
 
+    // Vérifier si le module a un install.sh (dans ce cas on ignore package.json)
+    const hasInstallScript = await fs.pathExists(path.join(srcDir, 'install.sh'));
+
     for (const file of files) {
       const srcPath = path.join(srcDir, file.name);
       const fileRelativePath = relativePath ? path.join(relativePath, file.name) : file.name;
@@ -261,14 +264,17 @@ export class TemplateService {
         await this.copyModuleFiles(srcPath, destination, framework, moduleName, fileRelativePath);
       } else if (file.name === framework.configFileName && (await fs.pathExists(destPath))) {
         await this.mergeConfigFile(framework, srcPath, destPath);
-      } else if (file.name === 'package.json' && (await fs.pathExists(destPath))) {
-        await this.mergeFile(srcPath, destPath, mergePackageJson);
+      } else if (file.name === 'package.json') {
+        // Ignorer package.json si le module a un install.sh (il gère les deps)
+        if (!hasInstallScript && (await fs.pathExists(destPath))) {
+          await this.mergeFile(srcPath, destPath, mergePackageJson);
+        }
       } else if (file.name === '.env.example' && (await fs.pathExists(destPath))) {
         await this.mergeEnvFile(srcPath, destPath, moduleName);
       } else if (moduleName === 'docker' && (file.name === 'docker-compose.yml' || file.name === 'Dockerfile')) {
         // Ignorer ces fichiers pour le module docker, on les générera dynamiquement
-      } else if (file.name === 'setup.sh') {
-        // Ignorer setup.sh, il sera exécuté mais pas copié
+      } else if (file.name === 'setup.sh' || file.name === 'install.sh') {
+        // Ignorer setup.sh et install.sh, ils seront exécutés mais pas copiés
       } else {
         await fs.copy(srcPath, destPath, { overwrite: true });
       }
@@ -348,6 +354,143 @@ export class TemplateService {
     const envPath = path.join(projectPath, '.env');
     if (await fs.pathExists(envExamplePath)) {
       await fs.copy(envExamplePath, envPath);
+    }
+  }
+
+  // Ajouter des modules à un projet existant
+  async addModulesToProject(
+    framework: FrameworkDefinition,
+    projectPath: string,
+    modules: string[],
+    moduleAnswers: ModuleAnswers = {},
+    installedModules: string[] = []
+  ): Promise<CopyTemplateResult> {
+    const basePath = path.join(this.templatesPath, framework.id);
+    const setupScripts: SetupScript[] = [];
+
+    // Collecter les configurations générées par les modules
+    const moduleConfigs: Map<string, ModuleConfiguration> = new Map();
+    const allModules = [...installedModules, ...modules];
+    const context: PromptContext = { selectedModules: allModules, answers: moduleAnswers };
+
+    // Générer les configurations pour chaque module qui a des réponses
+    for (const moduleId of modules) {
+      const moduleDef = moduleRegistry.get(moduleId);
+      if (moduleDef?.configure && moduleAnswers[moduleId]) {
+        const config = moduleDef.configure(moduleAnswers[moduleId], context);
+        moduleConfigs.set(moduleId, config);
+      }
+    }
+
+    const placeholderService = new PlaceholderService();
+
+    try {
+      // Copier chaque nouveau module
+      for (const moduleName of modules) {
+        const moduleSetupScripts = await this.copyModule(
+          basePath,
+          projectPath,
+          moduleName,
+          framework,
+          moduleAnswers[moduleName] || {}
+        );
+
+        placeholderService.replacePlaceholderInFile(
+          basePath,
+          moduleName,
+          projectPath,
+          moduleRegistry.get(moduleName)?.placeholderDefinition || {}
+        );
+
+        setupScripts.push(...moduleSetupScripts);
+      }
+
+      // Appliquer les configurations des modules (env, docker, etc.)
+      await this.applyModuleConfigurations(projectPath, modules, moduleConfigs);
+
+      // Mettre à jour docker-compose.yml si docker est installé
+      const dockerInstalled = installedModules.includes('docker') || modules.includes('docker');
+      if (dockerInstalled) {
+        // Récupérer les configs de tous les modules installés pour le docker
+        const allModuleConfigs = new Map(moduleConfigs);
+
+        // Ajouter les configs des modules déjà installés
+        for (const moduleId of installedModules) {
+          if (!allModuleConfigs.has(moduleId)) {
+            const moduleDef = moduleRegistry.get(moduleId);
+            if (moduleDef?.docker) {
+              // Créer une config minimale avec les infos docker
+              allModuleConfigs.set(moduleId, { docker: moduleDef.docker });
+            }
+          }
+        }
+
+        await this.generateDockerFiles(framework, projectPath, allModules, allModuleConfigs);
+      }
+
+      // Traiter les fragments de chaque nouveau module
+      const fragmentContext = { selectedModules: allModules, moduleAnswers };
+      for (const moduleName of modules) {
+        const moduleDef = moduleRegistry.get(moduleName);
+        if (moduleDef?.fragments && moduleDef.fragments.length > 0) {
+          const modulePath = path.join(basePath, 'modules', moduleName);
+          await fragmentService.processModuleFragments(
+            modulePath,
+            projectPath,
+            moduleName,
+            moduleDef.fragments,
+            fragmentContext
+          );
+        }
+      }
+
+      // Mettre à jour .env à partir de .env.example
+      await this.updateEnvFromExample(projectPath);
+
+      return { setupScripts };
+    } catch (err) {
+      console.error('Error adding modules:', err);
+      return { setupScripts: [] };
+    }
+  }
+
+  // Mettre à jour .env avec les nouvelles variables de .env.example
+  private async updateEnvFromExample(projectPath: string): Promise<void> {
+    const envExamplePath = path.join(projectPath, '.env.example');
+    const envPath = path.join(projectPath, '.env');
+
+    if (!(await fs.pathExists(envExamplePath))) {
+      return;
+    }
+
+    const exampleContent = await fs.readFile(envExamplePath, 'utf-8');
+    let envContent = '';
+
+    if (await fs.pathExists(envPath)) {
+      envContent = await fs.readFile(envPath, 'utf-8');
+    }
+
+    // Parser les variables de .env.example
+    const exampleLines = exampleContent.split('\n');
+    const newVars: string[] = [];
+
+    for (const line of exampleLines) {
+      const trimmed = line.trim();
+      if (trimmed && !trimmed.startsWith('#')) {
+        const [key] = trimmed.split('=');
+        if (key && !envContent.includes(`${key}=`)) {
+          newVars.push(trimmed);
+        }
+      }
+    }
+
+    if (newVars.length > 0) {
+      envContent = envContent.trim();
+      if (envContent) {
+        envContent += '\n\n# New variables\n';
+      }
+      envContent += newVars.join('\n') + '\n';
+      await fs.writeFile(envPath, envContent, 'utf-8');
     }
   }
 }

@@ -34,16 +34,29 @@ export class PromptService {
     });
   }
 
+  // Demander les modules à ajouter à un projet existant
+  async askModulesToAdd(choices: Array<{ name: string; value: string }>): Promise<string[]> {
+    return multipleSelect({
+      message: 'Choose modules to add:',
+      multiple: true,
+      options: choices
+    });
+  }
+
   // Demander les questions spécifiques à chaque module
-  async askModuleQuestions(selectedModules: string[]): Promise<ModuleAnswers> {
+  async askModuleQuestions(
+    selectedModules: string[],
+    installedModules: string[] = []
+  ): Promise<ModuleAnswers> {
     const answers: ModuleAnswers = {};
+    const allModules = [...installedModules, ...selectedModules];
 
     for (const moduleId of selectedModules) {
       const module = moduleRegistry.get(moduleId);
       if (!module?.prompts || module.prompts.length === 0) continue;
 
       const moduleAnswers: Record<string, string | boolean> = {};
-      const context: PromptContext = { selectedModules, answers };
+      const context: PromptContext = { selectedModules: allModules, answers };
 
       console.log(`\n⚙️  Configuration de ${module.name}:`);
 

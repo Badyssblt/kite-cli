@@ -7,6 +7,7 @@ import { moduleRegistry } from '../core/module-registry';
 import { dependencyService } from '../services/dependency.service';
 import { templateService } from '../services/template.service';
 import { setupService } from '../services/setup.service';
+import { installService } from '../services/install.service';
 import { promptService } from '../services/prompt.service';
 import type { ModuleAnswers } from '../types';
 
@@ -64,17 +65,39 @@ export const createCommand = new Command('create')
     const shouldInstall = await promptService.askInstallDependencies();
 
     if (shouldInstall) {
-      const installSpinner = ora('Installation...').start();
+      const installSpinner = ora('Installation des dépendances de base...').start();
       try {
         setupService.installDependencies(projectPath);
-        installSpinner.succeed('Dépendances installées');
+        installSpinner.succeed('Dépendances de base installées');
       } catch (error) {
         installSpinner.fail('Erreur installation');
         console.error(error);
       }
+
+      // Exécuter les scripts install.sh des modules
+      if (modules.length > 0) {
+        console.log('');
+        console.log('📦 Installation des modules...');
+
+        for (const moduleId of modules) {
+          const moduleDef = moduleRegistry.get(moduleId);
+          const moduleName = moduleDef?.name || moduleId;
+
+          if (installService.hasInstallScript(framework.id, moduleId)) {
+            console.log(`\n▸ ${moduleName}`);
+            const result = installService.executeInstallScript(framework.id, moduleId, projectPath);
+
+            if (!result.success) {
+              console.error(`  ❌ Erreur: ${result.error}`);
+            } else {
+              console.log(`  ✓ Installé`);
+            }
+          }
+        }
+      }
     }
 
-    // Exécuter automatiquement les scripts setup.sh des modules
+    // Exécuter automatiquement les scripts setup.sh des modules (configuration post-install)
     if (setupScripts.length > 0) {
       const setupSpinner = ora('Configuration des modules...').start();
 

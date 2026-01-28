@@ -94,11 +94,11 @@ export const betterAuthModule: ModuleDefinition = {
 
     // Dépendances selon l'adaptateur
     const dependencies: Record<string, string> = {
-      'better-auth': '^1.2.0'
+      'better-auth': '^1.4.17'
     };
 
     const devDependencies: Record<string, string> = {
-      '@better-auth/cli': '^1.2.0'
+      '@better-auth/cli': '^1.4.17'
     };
 
     // Ajouter le driver de base de données si pas Prisma

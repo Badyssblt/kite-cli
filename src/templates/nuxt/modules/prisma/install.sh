@@ -1,0 +1,25 @@
+#!/bin/bash
+
+# Install Prisma
+npm install @prisma/client
+npm install -D prisma
+
+# Initialize Prisma
+npx prisma init --datasource-provider postgresql
+
+# Create lib/db.ts
+mkdir -p lib
+cat > lib/db.ts << 'EOF'
+import { PrismaClient } from "@prisma/client";
+
+const globalForPrisma = globalThis as unknown as {
+  prisma: PrismaClient | undefined;
+};
+
+export const prisma = globalForPrisma.prisma ?? new PrismaClient();
+
+if (process.env.NODE_ENV !== "production") globalForPrisma.prisma = prisma;
+EOF
+
+echo "✓ Prisma installed"
+echo "  Next: Edit prisma/schema.prisma and run 'npx prisma db push'"
