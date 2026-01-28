@@ -40,11 +40,11 @@ class PromptService {
         });
     }
     // Demander les questions spécifiques à chaque module
-    async askModuleQuestions(selectedModules, installedModules = []) {
+    async askModuleQuestions(frameworkId, selectedModules, installedModules = []) {
         const answers = {};
         const allModules = [...installedModules, ...selectedModules];
         for (const moduleId of selectedModules) {
-            const module = module_registry_1.moduleRegistry.get(moduleId);
+            const module = module_registry_1.moduleRegistry.get(frameworkId, moduleId);
             if (!module?.prompts || module.prompts.length === 0)
                 continue;
             const moduleAnswers = {};

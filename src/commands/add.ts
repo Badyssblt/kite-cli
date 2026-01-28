@@ -29,9 +29,10 @@ export const addCommand = new Command('add')
     spinner.succeed(`Detected ${detection.framework.name} project`);
 
     const framework = detection.framework;
+    const frameworkId = framework.id;
 
     // Détecter les modules déjà installés
-    const installedModules = detectService.detectInstalledModules(projectPath, framework.id);
+    const installedModules = detectService.detectInstalledModules(projectPath, frameworkId);
 
     if (installedModules.length > 0) {
       console.log('');
@@ -83,7 +84,7 @@ export const addCommand = new Command('add')
     }
 
     // Résoudre les dépendances
-    const modules = dependencyService.resolveDependencies(selectedModules);
+    const modules = dependencyService.resolveDependencies(frameworkId, selectedModules);
     const addedModules = dependencyService.getAddedDependencies(selectedModules, modules);
 
     // Filtrer les modules déjà installés des dépendances
@@ -100,7 +101,7 @@ export const addCommand = new Command('add')
       if (newDeps.length > 0) {
         console.log('');
         console.log('📦 Dependencies added automatically:');
-        console.log(dependencyService.getDependencyMessage(newDeps));
+        console.log(dependencyService.getDependencyMessage(frameworkId, newDeps));
       }
     }
 
@@ -108,25 +109,25 @@ export const addCommand = new Command('add')
 
     // Installer chaque module via son script install.sh
     for (const moduleId of modulesToInstall) {
-      const moduleDef = moduleRegistry.get(moduleId);
-      const moduleName = moduleDef?.name || moduleId;
+      const moduleDef = moduleRegistry.get(frameworkId, moduleId);
+      const modName = moduleDef?.name || moduleId;
 
-      console.log(`\n📦 Installing ${moduleName}...\n`);
+      console.log(`\n📦 Installing ${modName}...\n`);
 
-      if (installService.hasInstallScript(framework.id, moduleId)) {
-        const result = installService.executeInstallScript(framework.id, moduleId, projectPath);
+      if (installService.hasInstallScript(frameworkId, moduleId)) {
+        const result = installService.executeInstallScript(frameworkId, moduleId, projectPath);
 
         if (!result.success) {
-          console.error(`❌ Failed to install ${moduleName}: ${result.error}`);
+          console.error(`❌ Failed to install ${modName}: ${result.error}`);
         }
       } else {
-        console.log(`⚠️  No install script for ${moduleName}, skipping...`);
+        console.log(`⚠️  No install script for ${modName}, skipping...`);
       }
     }
 
     // Afficher les instructions des modules
     const modulesWithInstructions = modulesToInstall
-      .map(id => moduleRegistry.get(id))
+      .map(id => moduleRegistry.get(frameworkId, id))
       .filter(m => m?.instructions);
 
     if (modulesWithInstructions.length > 0) {

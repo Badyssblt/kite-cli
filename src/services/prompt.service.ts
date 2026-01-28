@@ -45,6 +45,7 @@ export class PromptService {
 
   // Demander les questions spécifiques à chaque module
   async askModuleQuestions(
+    frameworkId: string,
     selectedModules: string[],
     installedModules: string[] = []
   ): Promise<ModuleAnswers> {
@@ -52,7 +53,7 @@ export class PromptService {
     const allModules = [...installedModules, ...selectedModules];
 
     for (const moduleId of selectedModules) {
-      const module = moduleRegistry.get(moduleId);
+      const module = moduleRegistry.get(frameworkId, moduleId);
       if (!module?.prompts || module.prompts.length === 0) continue;
 
       const moduleAnswers: Record<string, string | boolean> = {};

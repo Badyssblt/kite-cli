@@ -12,6 +12,7 @@ import { toYAML } from '../utils/yaml';
 export class DockerGeneratorService {
   // Générer le docker-compose.yml complet
   generateDockerCompose(
+    frameworkId: string,
     modules: string[],
     moduleConfigs: Map<string, ModuleConfiguration> = new Map()
   ): string {
@@ -27,7 +28,7 @@ export class DockerGeneratorService {
         config = this.deepMergeDockerConfig(config, dynamicConfig.docker);
       } else {
         // Sinon utiliser la config statique du module
-        const module = moduleRegistry.get(moduleId);
+        const module = moduleRegistry.get(frameworkId, moduleId);
         if (module?.docker) {
           config = this.deepMergeDockerConfig(config, module.docker);
         }

@@ -6,11 +6,11 @@ const child_process_1 = require("child_process");
 const dependency_service_1 = require("./dependency.service");
 class SetupService {
     // Exécuter les scripts setup dans l'ordre des dépendances
-    executeSetupScripts(setupScripts, projectPath, onProgress, onError) {
+    executeSetupScripts(frameworkId, setupScripts, projectPath, onProgress, onError) {
         const failedModules = [];
         // Trier les scripts selon l'ordre des dépendances
         const moduleNames = setupScripts.map(s => s.name);
-        const sortedNames = dependency_service_1.dependencyService.sortByDependencies(moduleNames);
+        const sortedNames = dependency_service_1.dependencyService.sortByDependencies(frameworkId, moduleNames);
         const sortedScripts = sortedNames
             .map(name => setupScripts.find(s => s.name === name))
             .filter((s) => s !== undefined);

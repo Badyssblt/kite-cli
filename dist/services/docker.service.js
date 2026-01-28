@@ -6,7 +6,7 @@ const module_registry_1 = require("../core/module-registry");
 const yaml_1 = require("../utils/yaml");
 class DockerGeneratorService {
     // Générer le docker-compose.yml complet
-    generateDockerCompose(modules, moduleConfigs = new Map()) {
+    generateDockerCompose(frameworkId, modules, moduleConfigs = new Map()) {
         let config = {
             services: {}
         };
@@ -19,7 +19,7 @@ class DockerGeneratorService {
             }
             else {
                 // Sinon utiliser la config statique du module
-                const module = module_registry_1.moduleRegistry.get(moduleId);
+                const module = module_registry_1.moduleRegistry.get(frameworkId, moduleId);
                 if (module?.docker) {
                     config = this.deepMergeDockerConfig(config, module.docker);
                 }

@@ -1,47 +1,55 @@
-// Registry central des modules
+// Registry central des modules (par framework)
 
 import type { ModuleDefinition } from '../types';
 
 class ModuleRegistry {
-  private modules: Map<string, ModuleDefinition> = new Map();
+  // Map<frameworkId, Map<moduleId, ModuleDefinition>>
+  private modules: Map<string, Map<string, ModuleDefinition>> = new Map();
 
-  register(module: ModuleDefinition): void {
-    if (this.modules.has(module.id)) {
-      console.warn(`Module "${module.id}" déjà enregistré, écrasement...`);
+  register(frameworkId: string, module: ModuleDefinition): void {
+    if (!this.modules.has(frameworkId)) {
+      this.modules.set(frameworkId, new Map());
     }
-    this.modules.set(module.id, module);
+    this.modules.get(frameworkId)!.set(module.id, module);
   }
 
-  registerAll(modules: ModuleDefinition[]): void {
+  registerAll(frameworkId: string, modules: ModuleDefinition[]): void {
     for (const module of modules) {
-      this.register(module);
+      this.register(frameworkId, module);
     }
   }
 
-  get(id: string): ModuleDefinition | undefined {
-    return this.modules.get(id);
+  get(frameworkId: string, moduleId: string): ModuleDefinition | undefined {
+    return this.modules.get(frameworkId)?.get(moduleId);
   }
 
-  getAll(): ModuleDefinition[] {
-    return Array.from(this.modules.values());
+  getAll(frameworkId: string): ModuleDefinition[] {
+    const frameworkModules = this.modules.get(frameworkId);
+    if (!frameworkModules) return [];
+    return Array.from(frameworkModules.values());
   }
 
-  has(id: string): boolean {
-    return this.modules.has(id);
+  has(frameworkId: string, moduleId: string): boolean {
+    return this.modules.get(frameworkId)?.has(moduleId) ?? false;
   }
 
-  getIds(): string[] {
-    return Array.from(this.modules.keys());
+  getIds(frameworkId: string): string[] {
+    const frameworkModules = this.modules.get(frameworkId);
+    if (!frameworkModules) return [];
+    return Array.from(frameworkModules.keys());
   }
 
   // Résoudre les dépendances récursivement
-  resolveDependencies(selectedModuleIds: string[]): string[] {
+  resolveDependencies(frameworkId: string, selectedModuleIds: string[]): string[] {
     const resolved = new Set<string>(selectedModuleIds);
     const toProcess = [...selectedModuleIds];
+    const frameworkModules = this.modules.get(frameworkId);
+
+    if (!frameworkModules) return selectedModuleIds;
 
     while (toProcess.length > 0) {
       const currentId = toProcess.shift()!;
-      const module = this.modules.get(currentId);
+      const module = frameworkModules.get(currentId);
 
       if (!module) continue;
 
@@ -64,13 +72,14 @@ class ModuleRegistry {
   }
 
   // Message explicatif des dépendances ajoutées
-  getDependencyMessage(addedModules: string[]): string {
+  getDependencyMessage(frameworkId: string, addedModules: string[]): string {
     if (addedModules.length === 0) return '';
 
     const messages: string[] = [];
+    const allModules = this.getAll(frameworkId);
 
     for (const moduleId of addedModules) {
-      const dependents = this.getAll()
+      const dependents = allModules
         .filter(m => m.dependsOn?.includes(moduleId))
         .map(m => m.id);
 
@@ -83,15 +92,18 @@ class ModuleRegistry {
   }
 
   // Trier les modules selon l'ordre des dépendances (dépendances en premier)
-  sortByDependencies(moduleIds: string[]): string[] {
+  sortByDependencies(frameworkId: string, moduleIds: string[]): string[] {
     const sorted: string[] = [];
     const remaining = new Set(moduleIds);
+    const frameworkModules = this.modules.get(frameworkId);
+
+    if (!frameworkModules) return moduleIds;
 
     while (remaining.size > 0) {
       let addedThisRound = false;
 
       for (const moduleId of Array.from(remaining)) {
-        const module = this.modules.get(moduleId);
+        const module = frameworkModules.get(moduleId);
         const deps = module?.dependsOn || [];
 
         // Vérifier si toutes les dépendances sont déjà dans sorted

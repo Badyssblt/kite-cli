@@ -1,41 +1,51 @@
 "use strict";
-// Registry central des modules
+// Registry central des modules (par framework)
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.moduleRegistry = void 0;
 class ModuleRegistry {
     constructor() {
+        // Map<frameworkId, Map<moduleId, ModuleDefinition>>
         this.modules = new Map();
     }
-    register(module) {
-        if (this.modules.has(module.id)) {
-            console.warn(`Module "${module.id}" déjà enregistré, écrasement...`);
+    register(frameworkId, module) {
+        if (!this.modules.has(frameworkId)) {
+            this.modules.set(frameworkId, new Map());
         }
-        this.modules.set(module.id, module);
+        this.modules.get(frameworkId).set(module.id, module);
     }
-    registerAll(modules) {
+    registerAll(frameworkId, modules) {
         for (const module of modules) {
-            this.register(module);
+            this.register(frameworkId, module);
         }
     }
-    get(id) {
-        return this.modules.get(id);
+    get(frameworkId, moduleId) {
+        return this.modules.get(frameworkId)?.get(moduleId);
     }
-    getAll() {
-        return Array.from(this.modules.values());
+    getAll(frameworkId) {
+        const frameworkModules = this.modules.get(frameworkId);
+        if (!frameworkModules)
+            return [];
+        return Array.from(frameworkModules.values());
     }
-    has(id) {
-        return this.modules.has(id);
+    has(frameworkId, moduleId) {
+        return this.modules.get(frameworkId)?.has(moduleId) ?? false;
     }
-    getIds() {
-        return Array.from(this.modules.keys());
+    getIds(frameworkId) {
+        const frameworkModules = this.modules.get(frameworkId);
+        if (!frameworkModules)
+            return [];
+        return Array.from(frameworkModules.keys());
     }
     // Résoudre les dépendances récursivement
-    resolveDependencies(selectedModuleIds) {
+    resolveDependencies(frameworkId, selectedModuleIds) {
         const resolved = new Set(selectedModuleIds);
         const toProcess = [...selectedModuleIds];
+        const frameworkModules = this.modules.get(frameworkId);
+        if (!frameworkModules)
+            return selectedModuleIds;
         while (toProcess.length > 0) {
             const currentId = toProcess.shift();
-            const module = this.modules.get(currentId);
+            const module = frameworkModules.get(currentId);
             if (!module)
                 continue;
             const deps = module.dependsOn || [];
@@ -53,12 +63,13 @@ class ModuleRegistry {
         return resolvedModules.filter(m => !originalModules.includes(m));
     }
     // Message explicatif des dépendances ajoutées
-    getDependencyMessage(addedModules) {
+    getDependencyMessage(frameworkId, addedModules) {
         if (addedModules.length === 0)
             return '';
         const messages = [];
+        const allModules = this.getAll(frameworkId);
         for (const moduleId of addedModules) {
-            const dependents = this.getAll()
+            const dependents = allModules
                 .filter(m => m.dependsOn?.includes(moduleId))
                 .map(m => m.id);
             if (dependents.length > 0) {
@@ -68,13 +79,16 @@ class ModuleRegistry {
         return messages.join('\n');
     }
     // Trier les modules selon l'ordre des dépendances (dépendances en premier)
-    sortByDependencies(moduleIds) {
+    sortByDependencies(frameworkId, moduleIds) {
         const sorted = [];
         const remaining = new Set(moduleIds);
+        const frameworkModules = this.modules.get(frameworkId);
+        if (!frameworkModules)
+            return moduleIds;
         while (remaining.size > 0) {
             let addedThisRound = false;
             for (const moduleId of Array.from(remaining)) {
-                const module = this.modules.get(moduleId);
+                const module = frameworkModules.get(moduleId);
                 const deps = module?.dependsOn || [];
                 // Vérifier si toutes les dépendances sont déjà dans sorted
                 const allDepsAdded = deps.every(dep => sorted.includes(dep) || !moduleIds.includes(dep));

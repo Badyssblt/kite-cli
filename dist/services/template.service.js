@@ -27,7 +27,7 @@ class TemplateService {
         const context = { selectedModules: modules, answers: moduleAnswers };
         // Générer les configurations pour chaque module qui a des réponses
         for (const moduleId of modules) {
-            const moduleDef = module_registry_1.moduleRegistry.get(moduleId);
+            const moduleDef = module_registry_1.moduleRegistry.get(framework.id, moduleId);
             if (moduleDef?.configure && moduleAnswers[moduleId]) {
                 const config = moduleDef.configure(moduleAnswers[moduleId], context);
                 moduleConfigs.set(moduleId, config);
@@ -42,7 +42,7 @@ class TemplateService {
             // Copier chaque module
             for (const moduleName of modules) {
                 const moduleSetupScripts = await this.copyModule(basePath, destination, moduleName, framework, moduleAnswers[moduleName] || {});
-                placeholderService.replacePlaceholderInFile(basePath, moduleName, destination, module_registry_1.moduleRegistry.get(moduleName)?.placeholderDefinition || {});
+                placeholderService.replacePlaceholderInFile(basePath, moduleName, destination, module_registry_1.moduleRegistry.get(framework.id, moduleName)?.placeholderDefinition || {});
                 setupScripts.push(...moduleSetupScripts);
             }
             // Appliquer les configurations des modules (env, docker, etc.)
@@ -54,7 +54,7 @@ class TemplateService {
             // Traiter les fragments de chaque module
             const fragmentContext = { selectedModules: modules, moduleAnswers };
             for (const moduleName of modules) {
-                const moduleDef = module_registry_1.moduleRegistry.get(moduleName);
+                const moduleDef = module_registry_1.moduleRegistry.get(framework.id, moduleName);
                 if (moduleDef?.fragments && moduleDef.fragments.length > 0) {
                     const modulePath = path_1.default.join(basePath, 'modules', moduleName);
                     await fragment_service_1.fragmentService.processModuleFragments(modulePath, destination, moduleName, moduleDef.fragments, fragmentContext);
@@ -138,7 +138,7 @@ class TemplateService {
             return setupScripts;
         }
         // Vérifier si ce module a un setup.sh ET si hasSetupScript est true
-        const moduleDefinition = module_registry_1.moduleRegistry.get(moduleName);
+        const moduleDefinition = module_registry_1.moduleRegistry.get(framework.id, moduleName);
         if (moduleDefinition?.hasSetupScript) {
             const setupShPath = path_1.default.join(modulePath, 'setup.sh');
             if (await fs_extra_1.default.pathExists(setupShPath)) {
@@ -161,6 +161,8 @@ class TemplateService {
     // Copier les fichiers d'un module récursivement en ignorant _variants
     async copyModuleFiles(srcDir, destination, framework, moduleName, relativePath) {
         const files = await fs_extra_1.default.readdir(srcDir, { withFileTypes: true });
+        // Vérifier si le module a un install.sh (dans ce cas on ignore package.json)
+        const hasInstallScript = await fs_extra_1.default.pathExists(path_1.default.join(srcDir, 'install.sh'));
         for (const file of files) {
             const srcPath = path_1.default.join(srcDir, file.name);
             const fileRelativePath = relativePath ? path_1.default.join(relativePath, file.name) : file.name;
@@ -177,8 +179,11 @@ class TemplateService {
             else if (file.name === framework.configFileName && (await fs_extra_1.default.pathExists(destPath))) {
                 await this.mergeConfigFile(framework, srcPath, destPath);
             }
-            else if (file.name === 'package.json' && (await fs_extra_1.default.pathExists(destPath))) {
-                await this.mergeFile(srcPath, destPath, merge_service_1.mergePackageJson);
+            else if (file.name === 'package.json') {
+                // Ignorer package.json si le module a un install.sh (il gère les deps)
+                if (!hasInstallScript && (await fs_extra_1.default.pathExists(destPath))) {
+                    await this.mergeFile(srcPath, destPath, merge_service_1.mergePackageJson);
+                }
             }
             else if (file.name === '.env.example' && (await fs_extra_1.default.pathExists(destPath))) {
                 await this.mergeEnvFile(srcPath, destPath, moduleName);
@@ -186,8 +191,8 @@ class TemplateService {
             else if (moduleName === 'docker' && (file.name === 'docker-compose.yml' || file.name === 'Dockerfile')) {
                 // Ignorer ces fichiers pour le module docker, on les générera dynamiquement
             }
-            else if (file.name === 'setup.sh') {
-                // Ignorer setup.sh, il sera exécuté mais pas copié
+            else if (file.name === 'setup.sh' || file.name === 'install.sh') {
+                // Ignorer setup.sh et install.sh, ils seront exécutés mais pas copiés
             }
             else {
                 await fs_extra_1.default.copy(srcPath, destPath, { overwrite: true });
@@ -224,7 +229,7 @@ class TemplateService {
     }
     // Générer les fichiers Docker
     async generateDockerFiles(framework, destination, modules, moduleConfigs) {
-        const dockerCompose = docker_service_1.dockerService.generateDockerCompose(modules, moduleConfigs);
+        const dockerCompose = docker_service_1.dockerService.generateDockerCompose(framework.id, modules, moduleConfigs);
         await fs_extra_1.default.writeFile(path_1.default.join(destination, 'docker-compose.yml'), dockerCompose, 'utf-8');
         const dockerfile = docker_service_1.dockerService.generateDockerfile(framework, modules);
         await fs_extra_1.default.writeFile(path_1.default.join(destination, 'Dockerfile'), dockerfile, 'utf-8');
@@ -247,7 +252,7 @@ class TemplateService {
         const context = { selectedModules: allModules, answers: moduleAnswers };
         // Générer les configurations pour chaque module qui a des réponses
         for (const moduleId of modules) {
-            const moduleDef = module_registry_1.moduleRegistry.get(moduleId);
+            const moduleDef = module_registry_1.moduleRegistry.get(framework.id, moduleId);
             if (moduleDef?.configure && moduleAnswers[moduleId]) {
                 const config = moduleDef.configure(moduleAnswers[moduleId], context);
                 moduleConfigs.set(moduleId, config);
@@ -258,7 +263,7 @@ class TemplateService {
             // Copier chaque nouveau module
             for (const moduleName of modules) {
                 const moduleSetupScripts = await this.copyModule(basePath, projectPath, moduleName, framework, moduleAnswers[moduleName] || {});
-                placeholderService.replacePlaceholderInFile(basePath, moduleName, projectPath, module_registry_1.moduleRegistry.get(moduleName)?.placeholderDefinition || {});
+                placeholderService.replacePlaceholderInFile(basePath, moduleName, projectPath, module_registry_1.moduleRegistry.get(framework.id, moduleName)?.placeholderDefinition || {});
                 setupScripts.push(...moduleSetupScripts);
             }
             // Appliquer les configurations des modules (env, docker, etc.)
@@ -271,7 +276,7 @@ class TemplateService {
                 // Ajouter les configs des modules déjà installés
                 for (const moduleId of installedModules) {
                     if (!allModuleConfigs.has(moduleId)) {
-                        const moduleDef = module_registry_1.moduleRegistry.get(moduleId);
+                        const moduleDef = module_registry_1.moduleRegistry.get(framework.id, moduleId);
                         if (moduleDef?.docker) {
                             // Créer une config minimale avec les infos docker
                             allModuleConfigs.set(moduleId, { docker: moduleDef.docker });
@@ -283,7 +288,7 @@ class TemplateService {
             // Traiter les fragments de chaque nouveau module
             const fragmentContext = { selectedModules: allModules, moduleAnswers };
             for (const moduleName of modules) {
-                const moduleDef = module_registry_1.moduleRegistry.get(moduleName);
+                const moduleDef = module_registry_1.moduleRegistry.get(framework.id, moduleName);
                 if (moduleDef?.fragments && moduleDef.fragments.length > 0) {
                     const modulePath = path_1.default.join(basePath, 'modules', moduleName);
                     await fragment_service_1.fragmentService.processModuleFragments(modulePath, projectPath, moduleName, moduleDef.fragments, fragmentContext);

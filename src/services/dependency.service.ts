@@ -4,8 +4,8 @@ import { moduleRegistry } from '../core/module-registry';
 
 export class DependencyService {
   // Résoudre les dépendances pour une liste de modules
-  resolveDependencies(selectedModuleIds: string[]): string[] {
-    return moduleRegistry.resolveDependencies(selectedModuleIds);
+  resolveDependencies(frameworkId: string, selectedModuleIds: string[]): string[] {
+    return moduleRegistry.resolveDependencies(frameworkId, selectedModuleIds);
   }
 
   // Obtenir les modules ajoutés automatiquement
@@ -14,13 +14,13 @@ export class DependencyService {
   }
 
   // Message explicatif des dépendances ajoutées
-  getDependencyMessage(addedModules: string[]): string {
-    return moduleRegistry.getDependencyMessage(addedModules);
+  getDependencyMessage(frameworkId: string, addedModules: string[]): string {
+    return moduleRegistry.getDependencyMessage(frameworkId, addedModules);
   }
 
   // Trier les modules selon l'ordre des dépendances
-  sortByDependencies(moduleIds: string[]): string[] {
-    return moduleRegistry.sortByDependencies(moduleIds);
+  sortByDependencies(frameworkId: string, moduleIds: string[]): string[] {
+    return moduleRegistry.sortByDependencies(frameworkId, moduleIds);
   }
 }
 

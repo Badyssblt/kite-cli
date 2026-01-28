@@ -30,18 +30,18 @@ export const createCommand = new Command('create')
     const selectedModules = await promptService.askModules(frameworkId);
 
     // Résoudre les dépendances
-    const modules = dependencyService.resolveDependencies(selectedModules);
+    const modules = dependencyService.resolveDependencies(frameworkId, selectedModules);
     const addedModules = dependencyService.getAddedDependencies(selectedModules, modules);
 
     // Informer l'utilisateur des modules ajoutés automatiquement
     if (addedModules.length > 0) {
       console.log('');
       console.log('📦 Modules ajoutés automatiquement :');
-      console.log(dependencyService.getDependencyMessage(addedModules));
+      console.log(dependencyService.getDependencyMessage(frameworkId, addedModules));
     }
 
     // Poser les questions spécifiques à chaque module
-    const moduleAnswers: ModuleAnswers = await promptService.askModuleQuestions(modules);
+    const moduleAnswers: ModuleAnswers = await promptService.askModuleQuestions(frameworkId, modules);
 
     const projectPath = path.join(process.cwd(), projectName);
 
@@ -80,7 +80,7 @@ export const createCommand = new Command('create')
         console.log('📦 Installation des modules...');
 
         for (const moduleId of modules) {
-          const moduleDef = moduleRegistry.get(moduleId);
+          const moduleDef = moduleRegistry.get(frameworkId, moduleId);
           const moduleName = moduleDef?.name || moduleId;
 
           if (installService.hasInstallScript(framework.id, moduleId)) {
@@ -102,6 +102,7 @@ export const createCommand = new Command('create')
       const setupSpinner = ora('Configuration des modules...').start();
 
       const failedModules = setupService.executeSetupScripts(
+        frameworkId,
         setupScripts,
         projectPath,
         (moduleName) => {
@@ -121,7 +122,7 @@ export const createCommand = new Command('create')
 
     // Afficher les instructions des modules qui nécessitent une configuration manuelle
     const modulesWithInstructions = modules
-      .map(id => moduleRegistry.get(id))
+      .map(id => moduleRegistry.get(frameworkId, id))
       .filter(m => m?.instructions);
 
     if (modulesWithInstructions.length > 0) {

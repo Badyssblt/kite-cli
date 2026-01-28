@@ -42,12 +42,12 @@ export class TemplateService {
 
     // Générer les configurations pour chaque module qui a des réponses
     for (const moduleId of modules) {
-      const moduleDef = moduleRegistry.get(moduleId);
+      const moduleDef = moduleRegistry.get(framework.id, moduleId);
       if (moduleDef?.configure && moduleAnswers[moduleId]) {
         const config = moduleDef.configure(moduleAnswers[moduleId], context);
         moduleConfigs.set(moduleId, config);
       }
-    } 
+    }
 
     const placeholderService = new PlaceholderService()
 
@@ -71,7 +71,7 @@ export class TemplateService {
           basePath,
           moduleName,
           destination,
-          moduleRegistry.get(moduleName)?.placeholderDefinition || {}
+          moduleRegistry.get(framework.id, moduleName)?.placeholderDefinition || {}
         );
 
         setupScripts.push(...moduleSetupScripts);
@@ -88,7 +88,7 @@ export class TemplateService {
       // Traiter les fragments de chaque module
       const fragmentContext = { selectedModules: modules, moduleAnswers };
       for (const moduleName of modules) {
-        const moduleDef = moduleRegistry.get(moduleName);
+        const moduleDef = moduleRegistry.get(framework.id, moduleName);
         if (moduleDef?.fragments && moduleDef.fragments.length > 0) {
           const modulePath = path.join(basePath, 'modules', moduleName);
           await fragmentService.processModuleFragments(
@@ -207,7 +207,7 @@ export class TemplateService {
     }
 
     // Vérifier si ce module a un setup.sh ET si hasSetupScript est true
-    const moduleDefinition = moduleRegistry.get(moduleName);
+    const moduleDefinition = moduleRegistry.get(framework.id, moduleName);
     if (moduleDefinition?.hasSetupScript) {
       const setupShPath = path.join(modulePath, 'setup.sh');
       if (await fs.pathExists(setupShPath)) {
@@ -333,7 +333,7 @@ export class TemplateService {
     modules: string[],
     moduleConfigs: Map<string, ModuleConfiguration>
   ): Promise<void> {
-    const dockerCompose = dockerService.generateDockerCompose(modules, moduleConfigs);
+    const dockerCompose = dockerService.generateDockerCompose(framework.id, modules, moduleConfigs);
     await fs.writeFile(
       path.join(destination, 'docker-compose.yml'),
       dockerCompose,
@@ -375,7 +375,7 @@ export class TemplateService {
 
     // Générer les configurations pour chaque module qui a des réponses
     for (const moduleId of modules) {
-      const moduleDef = moduleRegistry.get(moduleId);
+      const moduleDef = moduleRegistry.get(framework.id, moduleId);
       if (moduleDef?.configure && moduleAnswers[moduleId]) {
         const config = moduleDef.configure(moduleAnswers[moduleId], context);
         moduleConfigs.set(moduleId, config);
@@ -399,7 +399,7 @@ export class TemplateService {
           basePath,
           moduleName,
           projectPath,
-          moduleRegistry.get(moduleName)?.placeholderDefinition || {}
+          moduleRegistry.get(framework.id, moduleName)?.placeholderDefinition || {}
         );
 
         setupScripts.push(...moduleSetupScripts);
@@ -417,7 +417,7 @@ export class TemplateService {
         // Ajouter les configs des modules déjà installés
         for (const moduleId of installedModules) {
           if (!allModuleConfigs.has(moduleId)) {
-            const moduleDef = moduleRegistry.get(moduleId);
+            const moduleDef = moduleRegistry.get(framework.id, moduleId);
             if (moduleDef?.docker) {
               // Créer une config minimale avec les infos docker
               allModuleConfigs.set(moduleId, { docker: moduleDef.docker });
@@ -431,7 +431,7 @@ export class TemplateService {
       // Traiter les fragments de chaque nouveau module
       const fragmentContext = { selectedModules: allModules, moduleAnswers };
       for (const moduleName of modules) {
-        const moduleDef = moduleRegistry.get(moduleName);
+        const moduleDef = moduleRegistry.get(framework.id, moduleName);
         if (moduleDef?.fragments && moduleDef.fragments.length > 0) {
           const modulePath = path.join(basePath, 'modules', moduleName);
           await fragmentService.processModuleFragments(

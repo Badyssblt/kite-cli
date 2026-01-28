@@ -8,10 +8,9 @@ const commander_1 = require("commander");
 const ora_1 = __importDefault(require("ora"));
 const module_registry_1 = require("../core/module-registry");
 const dependency_service_1 = require("../services/dependency.service");
-const template_service_1 = require("../services/template.service");
-const setup_service_1 = require("../services/setup.service");
 const prompt_service_1 = require("../services/prompt.service");
 const detect_service_1 = require("../services/detect.service");
+const install_service_1 = require("../services/install.service");
 exports.addCommand = new commander_1.Command('add')
     .description('Add a module to an existing project')
     .argument('[module]', 'Module to add (optional)')
@@ -29,8 +28,9 @@ exports.addCommand = new commander_1.Command('add')
     }
     spinner.succeed(`Detected ${detection.framework.name} project`);
     const framework = detection.framework;
+    const frameworkId = framework.id;
     // Détecter les modules déjà installés
-    const installedModules = detect_service_1.detectService.detectInstalledModules(projectPath, framework.id);
+    const installedModules = detect_service_1.detectService.detectInstalledModules(projectPath, frameworkId);
     if (installedModules.length > 0) {
         console.log('');
         console.log('📦 Installed modules:', installedModules.join(', '));
@@ -73,7 +73,7 @@ exports.addCommand = new commander_1.Command('add')
         }
     }
     // Résoudre les dépendances
-    const modules = dependency_service_1.dependencyService.resolveDependencies(selectedModules);
+    const modules = dependency_service_1.dependencyService.resolveDependencies(frameworkId, selectedModules);
     const addedModules = dependency_service_1.dependencyService.getAddedDependencies(selectedModules, modules);
     // Filtrer les modules déjà installés des dépendances
     const modulesToInstall = modules.filter(m => !installedModules.includes(m));
@@ -87,71 +87,46 @@ exports.addCommand = new commander_1.Command('add')
         if (newDeps.length > 0) {
             console.log('');
             console.log('📦 Dependencies added automatically:');
-            console.log(dependency_service_1.dependencyService.getDependencyMessage(newDeps));
+            console.log(dependency_service_1.dependencyService.getDependencyMessage(frameworkId, newDeps));
         }
     }
-    // Poser les questions spécifiques à chaque module
-    const moduleAnswers = await prompt_service_1.promptService.askModuleQuestions(modulesToInstall, installedModules);
     console.log('');
-    const installSpinner = (0, ora_1.default)('Adding modules...').start();
-    try {
-        // Ajouter les modules au projet existant
-        const { setupScripts } = await template_service_1.templateService.addModulesToProject(framework, projectPath, modulesToInstall, moduleAnswers, installedModules);
-        installSpinner.succeed('Modules added');
-        // Demander si l'utilisateur veut installer les dépendances
-        const shouldInstall = await prompt_service_1.promptService.askInstallDependencies();
-        if (shouldInstall) {
-            const depsSpinner = (0, ora_1.default)('Installing dependencies...').start();
-            try {
-                setup_service_1.setupService.installDependencies(projectPath);
-                depsSpinner.succeed('Dependencies installed');
-            }
-            catch (error) {
-                depsSpinner.fail('Failed to install dependencies');
-                console.error(error);
+    // Installer chaque module via son script install.sh
+    for (const moduleId of modulesToInstall) {
+        const moduleDef = module_registry_1.moduleRegistry.get(frameworkId, moduleId);
+        const modName = moduleDef?.name || moduleId;
+        console.log(`\n📦 Installing ${modName}...\n`);
+        if (install_service_1.installService.hasInstallScript(frameworkId, moduleId)) {
+            const result = install_service_1.installService.executeInstallScript(frameworkId, moduleId, projectPath);
+            if (!result.success) {
+                console.error(`❌ Failed to install ${modName}: ${result.error}`);
             }
         }
-        // Exécuter les scripts de setup
-        if (setupScripts.length > 0) {
-            const setupSpinner = (0, ora_1.default)('Configuring modules...').start();
-            const failedModules = setup_service_1.setupService.executeSetupScripts(setupScripts, projectPath, (moduleName) => {
-                setupSpinner.text = `Configuring: ${moduleName}`;
-            }, (moduleName) => {
-                setupSpinner.warn(`Error: ${moduleName}`);
-            });
-            if (failedModules.length === 0) {
-                setupSpinner.succeed('Modules configured');
-            }
-            else {
-                setupSpinner.fail(`Error configuring: ${failedModules.join(', ')}`);
-            }
+        else {
+            console.log(`⚠️  No install script for ${modName}, skipping...`);
         }
-        // Afficher les instructions des modules
-        const modulesWithInstructions = modulesToInstall
-            .map(id => module_registry_1.moduleRegistry.get(id))
-            .filter(m => m?.instructions);
-        if (modulesWithInstructions.length > 0) {
-            console.log('');
-            console.log('📋 Module configuration:');
-            console.log('');
-            for (const module of modulesWithInstructions) {
-                if (module?.instructions) {
-                    console.log(`  ▸ ${module.instructions.title}`);
-                    for (const step of module.instructions.steps) {
-                        console.log(`    ${step}`);
-                    }
-                    if (module.instructions.links?.length) {
-                        console.log(`    📚 ${module.instructions.links[0]}`);
-                    }
-                    console.log('');
-                }
-            }
-        }
-        console.log('✨ Done!');
+    }
+    // Afficher les instructions des modules
+    const modulesWithInstructions = modulesToInstall
+        .map(id => module_registry_1.moduleRegistry.get(frameworkId, id))
+        .filter(m => m?.instructions);
+    if (modulesWithInstructions.length > 0) {
         console.log('');
+        console.log('📋 Next steps:');
+        console.log('');
+        for (const module of modulesWithInstructions) {
+            if (module?.instructions) {
+                console.log(`  ▸ ${module.instructions.title}`);
+                for (const step of module.instructions.steps) {
+                    console.log(`    ${step}`);
+                }
+                if (module.instructions.links?.length) {
+                    console.log(`    📚 ${module.instructions.links[0]}`);
+                }
+                console.log('');
+            }
+        }
     }
-    catch (error) {
-        installSpinner.fail('Failed to add modules');
-        console.error(error);
-    }
+    console.log('✨ Done!');
+    console.log('');
 });

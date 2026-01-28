@@ -13,7 +13,7 @@ class FrameworkRegistry {
     this.frameworks.set(framework.id, framework);
 
     // Enregistrer tous les modules du framework dans le module registry
-    moduleRegistry.registerAll(framework.modules);
+    moduleRegistry.registerAll(framework.id, framework.modules);
   }
 
   get(id: string): FrameworkDefinition | undefined {

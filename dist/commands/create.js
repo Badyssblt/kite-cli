@@ -12,6 +12,7 @@ const module_registry_1 = require("../core/module-registry");
 const dependency_service_1 = require("../services/dependency.service");
 const template_service_1 = require("../services/template.service");
 const setup_service_1 = require("../services/setup.service");
+const install_service_1 = require("../services/install.service");
 const prompt_service_1 = require("../services/prompt.service");
 exports.createCommand = new commander_1.Command('create')
     .description('Create a new project')
@@ -28,16 +29,16 @@ exports.createCommand = new commander_1.Command('create')
     // Demander les modules à installer
     const selectedModules = await prompt_service_1.promptService.askModules(frameworkId);
     // Résoudre les dépendances
-    const modules = dependency_service_1.dependencyService.resolveDependencies(selectedModules);
+    const modules = dependency_service_1.dependencyService.resolveDependencies(frameworkId, selectedModules);
     const addedModules = dependency_service_1.dependencyService.getAddedDependencies(selectedModules, modules);
     // Informer l'utilisateur des modules ajoutés automatiquement
     if (addedModules.length > 0) {
         console.log('');
         console.log('📦 Modules ajoutés automatiquement :');
-        console.log(dependency_service_1.dependencyService.getDependencyMessage(addedModules));
+        console.log(dependency_service_1.dependencyService.getDependencyMessage(frameworkId, addedModules));
     }
     // Poser les questions spécifiques à chaque module
-    const moduleAnswers = await prompt_service_1.promptService.askModuleQuestions(modules);
+    const moduleAnswers = await prompt_service_1.promptService.askModuleQuestions(frameworkId, modules);
     const projectPath = path_1.default.join(process.cwd(), projectName);
     console.log('');
     const spinner = (0, ora_1.default)('Création du projet...').start();
@@ -49,20 +50,39 @@ exports.createCommand = new commander_1.Command('create')
     // Demander si l'utilisateur veut installer les dépendances
     const shouldInstall = await prompt_service_1.promptService.askInstallDependencies();
     if (shouldInstall) {
-        const installSpinner = (0, ora_1.default)('Installation...').start();
+        const installSpinner = (0, ora_1.default)('Installation des dépendances de base...').start();
         try {
             setup_service_1.setupService.installDependencies(projectPath);
-            installSpinner.succeed('Dépendances installées');
+            installSpinner.succeed('Dépendances de base installées');
         }
         catch (error) {
             installSpinner.fail('Erreur installation');
             console.error(error);
         }
+        // Exécuter les scripts install.sh des modules
+        if (modules.length > 0) {
+            console.log('');
+            console.log('📦 Installation des modules...');
+            for (const moduleId of modules) {
+                const moduleDef = module_registry_1.moduleRegistry.get(frameworkId, moduleId);
+                const moduleName = moduleDef?.name || moduleId;
+                if (install_service_1.installService.hasInstallScript(framework.id, moduleId)) {
+                    console.log(`\n▸ ${moduleName}`);
+                    const result = install_service_1.installService.executeInstallScript(framework.id, moduleId, projectPath);
+                    if (!result.success) {
+                        console.error(`  ❌ Erreur: ${result.error}`);
+                    }
+                    else {
+                        console.log(`  ✓ Installé`);
+                    }
+                }
+            }
+        }
     }
-    // Exécuter automatiquement les scripts setup.sh des modules
+    // Exécuter automatiquement les scripts setup.sh des modules (configuration post-install)
     if (setupScripts.length > 0) {
         const setupSpinner = (0, ora_1.default)('Configuration des modules...').start();
-        const failedModules = setup_service_1.setupService.executeSetupScripts(setupScripts, projectPath, (moduleName) => {
+        const failedModules = setup_service_1.setupService.executeSetupScripts(frameworkId, setupScripts, projectPath, (moduleName) => {
             setupSpinner.text = `Configuration: ${moduleName}`;
         }, (moduleName) => {
             setupSpinner.warn(`Erreur: ${moduleName}`);
@@ -76,7 +96,7 @@ exports.createCommand = new commander_1.Command('create')
     }
     // Afficher les instructions des modules qui nécessitent une configuration manuelle
     const modulesWithInstructions = modules
-        .map(id => module_registry_1.moduleRegistry.get(id))
+        .map(id => module_registry_1.moduleRegistry.get(frameworkId, id))
         .filter(m => m?.instructions);
     if (modulesWithInstructions.length > 0) {
         console.log('');

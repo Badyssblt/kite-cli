@@ -5,20 +5,20 @@ exports.dependencyService = exports.DependencyService = void 0;
 const module_registry_1 = require("../core/module-registry");
 class DependencyService {
     // Résoudre les dépendances pour une liste de modules
-    resolveDependencies(selectedModuleIds) {
-        return module_registry_1.moduleRegistry.resolveDependencies(selectedModuleIds);
+    resolveDependencies(frameworkId, selectedModuleIds) {
+        return module_registry_1.moduleRegistry.resolveDependencies(frameworkId, selectedModuleIds);
     }
     // Obtenir les modules ajoutés automatiquement
     getAddedDependencies(originalModules, resolvedModules) {
         return module_registry_1.moduleRegistry.getAddedDependencies(originalModules, resolvedModules);
     }
     // Message explicatif des dépendances ajoutées
-    getDependencyMessage(addedModules) {
-        return module_registry_1.moduleRegistry.getDependencyMessage(addedModules);
+    getDependencyMessage(frameworkId, addedModules) {
+        return module_registry_1.moduleRegistry.getDependencyMessage(frameworkId, addedModules);
     }
     // Trier les modules selon l'ordre des dépendances
-    sortByDependencies(moduleIds) {
-        return module_registry_1.moduleRegistry.sortByDependencies(moduleIds);
+    sortByDependencies(frameworkId, moduleIds) {
+        return module_registry_1.moduleRegistry.sortByDependencies(frameworkId, moduleIds);
     }
 }
 exports.DependencyService = DependencyService;

@@ -7,6 +7,7 @@ import { dependencyService } from './dependency.service';
 export class SetupService {
   // Exécuter les scripts setup dans l'ordre des dépendances
   executeSetupScripts(
+    frameworkId: string,
     setupScripts: SetupScript[],
     projectPath: string,
     onProgress?: (moduleName: string) => void,
@@ -16,7 +17,7 @@ export class SetupService {
 
     // Trier les scripts selon l'ordre des dépendances
     const moduleNames = setupScripts.map(s => s.name);
-    const sortedNames = dependencyService.sortByDependencies(moduleNames);
+    const sortedNames = dependencyService.sortByDependencies(frameworkId, moduleNames);
     const sortedScripts = sortedNames
       .map(name => setupScripts.find(s => s.name === name))
       .filter((s): s is SetupScript => s !== undefined);
