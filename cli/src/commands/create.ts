@@ -65,21 +65,25 @@ export const createCommand = new Command('create')
     const shouldInstall = await promptService.askInstallDependencies();
 
     if (shouldInstall) {
+      // Installer les dépendances de base SANS exécuter les scripts (nuxt prepare)
+      // car les modules comme tailwind ne sont pas encore installés
       const installSpinner = ora('Installation des dépendances de base...').start();
       try {
-        setupService.installDependencies(projectPath);
+        setupService.installDependencies(projectPath, true); // ignoreScripts = true
         installSpinner.succeed('Dépendances de base installées');
       } catch (error) {
         installSpinner.fail('Erreur installation');
         console.error(error);
       }
 
-      // Exécuter les scripts install.sh des modules
+      // Exécuter les scripts install.sh des modules AVANT nuxt prepare
+      // Trier par dépendances pour installer tailwind avant shadcn, etc.
       if (modules.length > 0) {
         console.log('');
         console.log('📦 Installation des modules...');
 
-        for (const moduleId of modules) {
+        const sortedModules = dependencyService.sortByDependencies(frameworkId, modules);
+        for (const moduleId of sortedModules) {
           const moduleDef = moduleRegistry.get(frameworkId, moduleId);
           const moduleName = moduleDef?.name || moduleId;
 
@@ -94,6 +98,16 @@ export const createCommand = new Command('create')
             }
           }
         }
+      }
+
+      // Maintenant exécuter nuxt prepare (postinstall)
+      const prepareSpinner = ora('Préparation du projet...').start();
+      try {
+        setupService.runPrepare(projectPath);
+        prepareSpinner.succeed('Projet préparé');
+      } catch (error) {
+        prepareSpinner.fail('Erreur préparation');
+        // Non bloquant, le projet peut fonctionner sans
       }
     }
 

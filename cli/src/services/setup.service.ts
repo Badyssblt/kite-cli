@@ -39,8 +39,17 @@ export class SetupService {
   }
 
   // Installer les dépendances npm
-  installDependencies(projectPath: string): void {
-    execSync('npm install', {
+  installDependencies(projectPath: string, ignoreScripts = false): void {
+    const cmd = ignoreScripts ? 'npm install --ignore-scripts' : 'npm install';
+    execSync(cmd, {
+      cwd: projectPath,
+      stdio: 'pipe'
+    });
+  }
+
+  // Exécuter nuxt prepare (ou équivalent)
+  runPrepare(projectPath: string): void {
+    execSync('npm run postinstall', {
       cwd: projectPath,
       stdio: 'pipe'
     });

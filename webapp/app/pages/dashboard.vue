@@ -9,4 +9,8 @@
 
 <script setup>
     const { data: session } = await useFetch('/api/session');
+
+    definePageMeta({
+        layout: "dashboard"
+    })
 </script>
