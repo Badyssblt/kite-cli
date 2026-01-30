@@ -51,7 +51,8 @@ export const AnyNull = runtime.AnyNull
 
 
 export const ModelName = {
-  Post: 'Post',
+  Framework: 'Framework',
+  Module: 'Module',
   User: 'User',
   Session: 'Session',
   Account: 'Account',
@@ -74,16 +75,23 @@ export const TransactionIsolationLevel = runtime.makeStrictEnum({
 export type TransactionIsolationLevel = (typeof TransactionIsolationLevel)[keyof typeof TransactionIsolationLevel]
 
 
-export const PostScalarFieldEnum = {
+export const FrameworkScalarFieldEnum = {
   id: 'id',
-  title: 'title',
-  content: 'content',
-  published: 'published',
-  createdAt: 'createdAt',
-  updatedAt: 'updatedAt'
+  name: 'name',
+  description: 'description'
 } as const
 
-export type PostScalarFieldEnum = (typeof PostScalarFieldEnum)[keyof typeof PostScalarFieldEnum]
+export type FrameworkScalarFieldEnum = (typeof FrameworkScalarFieldEnum)[keyof typeof FrameworkScalarFieldEnum]
+
+
+export const ModuleScalarFieldEnum = {
+  id: 'id',
+  name: 'name',
+  description: 'description',
+  frameworkId: 'frameworkId'
+} as const
+
+export type ModuleScalarFieldEnum = (typeof ModuleScalarFieldEnum)[keyof typeof ModuleScalarFieldEnum]
 
 
 export const UserScalarFieldEnum = {
@@ -152,21 +160,31 @@ export const SortOrder = {
 export type SortOrder = (typeof SortOrder)[keyof typeof SortOrder]
 
 
+export const FrameworkOrderByRelevanceFieldEnum = {
+  id: 'id',
+  name: 'name',
+  description: 'description'
+} as const
+
+export type FrameworkOrderByRelevanceFieldEnum = (typeof FrameworkOrderByRelevanceFieldEnum)[keyof typeof FrameworkOrderByRelevanceFieldEnum]
+
+
+export const ModuleOrderByRelevanceFieldEnum = {
+  id: 'id',
+  name: 'name',
+  description: 'description',
+  frameworkId: 'frameworkId'
+} as const
+
+export type ModuleOrderByRelevanceFieldEnum = (typeof ModuleOrderByRelevanceFieldEnum)[keyof typeof ModuleOrderByRelevanceFieldEnum]
+
+
 export const NullsOrder = {
   first: 'first',
   last: 'last'
 } as const
 
 export type NullsOrder = (typeof NullsOrder)[keyof typeof NullsOrder]
-
-
-export const PostOrderByRelevanceFieldEnum = {
-  id: 'id',
-  title: 'title',
-  content: 'content'
-} as const
-
-export type PostOrderByRelevanceFieldEnum = (typeof PostOrderByRelevanceFieldEnum)[keyof typeof PostOrderByRelevanceFieldEnum]
 
 
 export const UserOrderByRelevanceFieldEnum = {

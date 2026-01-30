@@ -27,5 +27,8 @@ export default defineNuxtConfig({
     plugins: [
       tailwindcss(),
     ],
+  },
+  runtimeConfig: {
+    kiteApiKey: process.env.KITE_API_KEY || ''
   }
 })

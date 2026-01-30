@@ -3,6 +3,9 @@
 import { Command } from 'commander';
 import { createCommand } from './commands/create';
 import { addCommand } from './commands/add';
+import { previewCommand } from './commands/preview';
+import { fileContentCommand } from './commands/file-content';
+import { syncCommand } from './commands/sync';
 
 // Import et enregistrement des frameworks
 import { frameworkRegistry } from './core/framework-registry';
@@ -22,4 +25,7 @@ program
 
 program.addCommand(createCommand);
 program.addCommand(addCommand);
+program.addCommand(previewCommand);
+program.addCommand(fileContentCommand);
+program.addCommand(syncCommand);
 program.parse(process.argv);
