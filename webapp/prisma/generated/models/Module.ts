@@ -175,6 +175,7 @@ export type ModuleWhereInput = {
   description?: Prisma.StringFilter<"Module"> | string
   frameworkId?: Prisma.StringFilter<"Module"> | string
   framework?: Prisma.XOR<Prisma.FrameworkScalarRelationFilter, Prisma.FrameworkWhereInput>
+  projects?: Prisma.ProjectModuleListRelationFilter
 }
 
 export type ModuleOrderByWithRelationInput = {
@@ -183,6 +184,7 @@ export type ModuleOrderByWithRelationInput = {
   description?: Prisma.SortOrder
   frameworkId?: Prisma.SortOrder
   framework?: Prisma.FrameworkOrderByWithRelationInput
+  projects?: Prisma.ProjectModuleOrderByRelationAggregateInput
   _relevance?: Prisma.ModuleOrderByRelevanceInput
 }
 
@@ -195,6 +197,7 @@ export type ModuleWhereUniqueInput = Prisma.AtLeast<{
   description?: Prisma.StringFilter<"Module"> | string
   frameworkId?: Prisma.StringFilter<"Module"> | string
   framework?: Prisma.XOR<Prisma.FrameworkScalarRelationFilter, Prisma.FrameworkWhereInput>
+  projects?: Prisma.ProjectModuleListRelationFilter
 }, "id">
 
 export type ModuleOrderByWithAggregationInput = {
@@ -222,6 +225,7 @@ export type ModuleCreateInput = {
   name: string
   description: string
   framework: Prisma.FrameworkCreateNestedOneWithoutModulesInput
+  projects?: Prisma.ProjectModuleCreateNestedManyWithoutModuleInput
 }
 
 export type ModuleUncheckedCreateInput = {
@@ -229,6 +233,7 @@ export type ModuleUncheckedCreateInput = {
   name: string
   description: string
   frameworkId: string
+  projects?: Prisma.ProjectModuleUncheckedCreateNestedManyWithoutModuleInput
 }
 
 export type ModuleUpdateInput = {
@@ -236,6 +241,7 @@ export type ModuleUpdateInput = {
   name?: Prisma.StringFieldUpdateOperationsInput | string
   description?: Prisma.StringFieldUpdateOperationsInput | string
   framework?: Prisma.FrameworkUpdateOneRequiredWithoutModulesNestedInput
+  projects?: Prisma.ProjectModuleUpdateManyWithoutModuleNestedInput
 }
 
 export type ModuleUncheckedUpdateInput = {
@@ -243,6 +249,7 @@ export type ModuleUncheckedUpdateInput = {
   name?: Prisma.StringFieldUpdateOperationsInput | string
   description?: Prisma.StringFieldUpdateOperationsInput | string
   frameworkId?: Prisma.StringFieldUpdateOperationsInput | string
+  projects?: Prisma.ProjectModuleUncheckedUpdateManyWithoutModuleNestedInput
 }
 
 export type ModuleCreateManyInput = {
@@ -302,6 +309,11 @@ export type ModuleMinOrderByAggregateInput = {
   frameworkId?: Prisma.SortOrder
 }
 
+export type ModuleScalarRelationFilter = {
+  is?: Prisma.ModuleWhereInput
+  isNot?: Prisma.ModuleWhereInput
+}
+
 export type ModuleCreateNestedManyWithoutFrameworkInput = {
   create?: Prisma.XOR<Prisma.ModuleCreateWithoutFrameworkInput, Prisma.ModuleUncheckedCreateWithoutFrameworkInput> | Prisma.ModuleCreateWithoutFrameworkInput[] | Prisma.ModuleUncheckedCreateWithoutFrameworkInput[]
   connectOrCreate?: Prisma.ModuleCreateOrConnectWithoutFrameworkInput | Prisma.ModuleCreateOrConnectWithoutFrameworkInput[]
@@ -344,16 +356,32 @@ export type ModuleUncheckedUpdateManyWithoutFrameworkNestedInput = {
   deleteMany?: Prisma.ModuleScalarWhereInput | Prisma.ModuleScalarWhereInput[]
 }
 
+export type ModuleCreateNestedOneWithoutProjectsInput = {
+  create?: Prisma.XOR<Prisma.ModuleCreateWithoutProjectsInput, Prisma.ModuleUncheckedCreateWithoutProjectsInput>
+  connectOrCreate?: Prisma.ModuleCreateOrConnectWithoutProjectsInput
+  connect?: Prisma.ModuleWhereUniqueInput
+}
+
+export type ModuleUpdateOneRequiredWithoutProjectsNestedInput = {
+  create?: Prisma.XOR<Prisma.ModuleCreateWithoutProjectsInput, Prisma.ModuleUncheckedCreateWithoutProjectsInput>
+  connectOrCreate?: Prisma.ModuleCreateOrConnectWithoutProjectsInput
+  upsert?: Prisma.ModuleUpsertWithoutProjectsInput
+  connect?: Prisma.ModuleWhereUniqueInput
+  update?: Prisma.XOR<Prisma.XOR<Prisma.ModuleUpdateToOneWithWhereWithoutProjectsInput, Prisma.ModuleUpdateWithoutProjectsInput>, Prisma.ModuleUncheckedUpdateWithoutProjectsInput>
+}
+
 export type ModuleCreateWithoutFrameworkInput = {
   id: string
   name: string
   description: string
+  projects?: Prisma.ProjectModuleCreateNestedManyWithoutModuleInput
 }
 
 export type ModuleUncheckedCreateWithoutFrameworkInput = {
   id: string
   name: string
   description: string
+  projects?: Prisma.ProjectModuleUncheckedCreateNestedManyWithoutModuleInput
 }
 
 export type ModuleCreateOrConnectWithoutFrameworkInput = {
@@ -392,6 +420,50 @@ export type ModuleScalarWhereInput = {
   frameworkId?: Prisma.StringFilter<"Module"> | string
 }
 
+export type ModuleCreateWithoutProjectsInput = {
+  id: string
+  name: string
+  description: string
+  framework: Prisma.FrameworkCreateNestedOneWithoutModulesInput
+}
+
+export type ModuleUncheckedCreateWithoutProjectsInput = {
+  id: string
+  name: string
+  description: string
+  frameworkId: string
+}
+
+export type ModuleCreateOrConnectWithoutProjectsInput = {
+  where: Prisma.ModuleWhereUniqueInput
+  create: Prisma.XOR<Prisma.ModuleCreateWithoutProjectsInput, Prisma.ModuleUncheckedCreateWithoutProjectsInput>
+}
+
+export type ModuleUpsertWithoutProjectsInput = {
+  update: Prisma.XOR<Prisma.ModuleUpdateWithoutProjectsInput, Prisma.ModuleUncheckedUpdateWithoutProjectsInput>
+  create: Prisma.XOR<Prisma.ModuleCreateWithoutProjectsInput, Prisma.ModuleUncheckedCreateWithoutProjectsInput>
+  where?: Prisma.ModuleWhereInput
+}
+
+export type ModuleUpdateToOneWithWhereWithoutProjectsInput = {
+  where?: Prisma.ModuleWhereInput
+  data: Prisma.XOR<Prisma.ModuleUpdateWithoutProjectsInput, Prisma.ModuleUncheckedUpdateWithoutProjectsInput>
+}
+
+export type ModuleUpdateWithoutProjectsInput = {
+  id?: Prisma.StringFieldUpdateOperationsInput | string
+  name?: Prisma.StringFieldUpdateOperationsInput | string
+  description?: Prisma.StringFieldUpdateOperationsInput | string
+  framework?: Prisma.FrameworkUpdateOneRequiredWithoutModulesNestedInput
+}
+
+export type ModuleUncheckedUpdateWithoutProjectsInput = {
+  id?: Prisma.StringFieldUpdateOperationsInput | string
+  name?: Prisma.StringFieldUpdateOperationsInput | string
+  description?: Prisma.StringFieldUpdateOperationsInput | string
+  frameworkId?: Prisma.StringFieldUpdateOperationsInput | string
+}
+
 export type ModuleCreateManyFrameworkInput = {
   id: string
   name: string
@@ -402,12 +474,14 @@ export type ModuleUpdateWithoutFrameworkInput = {
   id?: Prisma.StringFieldUpdateOperationsInput | string
   name?: Prisma.StringFieldUpdateOperationsInput | string
   description?: Prisma.StringFieldUpdateOperationsInput | string
+  projects?: Prisma.ProjectModuleUpdateManyWithoutModuleNestedInput
 }
 
 export type ModuleUncheckedUpdateWithoutFrameworkInput = {
   id?: Prisma.StringFieldUpdateOperationsInput | string
   name?: Prisma.StringFieldUpdateOperationsInput | string
   description?: Prisma.StringFieldUpdateOperationsInput | string
+  projects?: Prisma.ProjectModuleUncheckedUpdateManyWithoutModuleNestedInput
 }
 
 export type ModuleUncheckedUpdateManyWithoutFrameworkInput = {
@@ -417,6 +491,35 @@ export type ModuleUncheckedUpdateManyWithoutFrameworkInput = {
 }
 
 
+/**
+ * Count Type ModuleCountOutputType
+ */
+
+export type ModuleCountOutputType = {
+  projects: number
+}
+
+export type ModuleCountOutputTypeSelect<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
+  projects?: boolean | ModuleCountOutputTypeCountProjectsArgs
+}
+
+/**
+ * ModuleCountOutputType without action
+ */
+export type ModuleCountOutputTypeDefaultArgs<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
+  /**
+   * Select specific fields to fetch from the ModuleCountOutputType
+   */
+  select?: Prisma.ModuleCountOutputTypeSelect<ExtArgs> | null
+}
+
+/**
+ * ModuleCountOutputType without action
+ */
+export type ModuleCountOutputTypeCountProjectsArgs<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
+  where?: Prisma.ProjectModuleWhereInput
+}
+
 
 export type ModuleSelect<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = runtime.Types.Extensions.GetSelect<{
   id?: boolean
@@ -424,6 +527,8 @@ export type ModuleSelect<ExtArgs extends runtime.Types.Extensions.InternalArgs =
   description?: boolean
   frameworkId?: boolean
   framework?: boolean | Prisma.FrameworkDefaultArgs<ExtArgs>
+  projects?: boolean | Prisma.Module$projectsArgs<ExtArgs>
+  _count?: boolean | Prisma.ModuleCountOutputTypeDefaultArgs<ExtArgs>
 }, ExtArgs["result"]["module"]>
 
 
@@ -438,12 +543,15 @@ export type ModuleSelectScalar = {
 export type ModuleOmit<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = runtime.Types.Extensions.GetOmit<"id" | "name" | "description" | "frameworkId", ExtArgs["result"]["module"]>
 export type ModuleInclude<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
   framework?: boolean | Prisma.FrameworkDefaultArgs<ExtArgs>
+  projects?: boolean | Prisma.Module$projectsArgs<ExtArgs>
+  _count?: boolean | Prisma.ModuleCountOutputTypeDefaultArgs<ExtArgs>
 }
 
 export type $ModulePayload<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
   name: "Module"
   objects: {
     framework: Prisma.$FrameworkPayload<ExtArgs>
+    projects: Prisma.$ProjectModulePayload<ExtArgs>[]
   }
   scalars: runtime.Types.Extensions.GetPayloadResult<{
     id: string
@@ -791,6 +899,7 @@ readonly fields: ModuleFieldRefs;
 export interface Prisma__ModuleClient<T, Null = never, ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs, GlobalOmitOptions = {}> extends Prisma.PrismaPromise<T> {
   readonly [Symbol.toStringTag]: "PrismaPromise"
   framework<T extends Prisma.FrameworkDefaultArgs<ExtArgs> = {}>(args?: Prisma.Subset<T, Prisma.FrameworkDefaultArgs<ExtArgs>>): Prisma.Prisma__FrameworkClient<runtime.Types.Result.GetResult<Prisma.$FrameworkPayload<ExtArgs>, T, "findUniqueOrThrow", GlobalOmitOptions> | Null, Null, ExtArgs, GlobalOmitOptions>
+  projects<T extends Prisma.Module$projectsArgs<ExtArgs> = {}>(args?: Prisma.Subset<T, Prisma.Module$projectsArgs<ExtArgs>>): Prisma.PrismaPromise<runtime.Types.Result.GetResult<Prisma.$ProjectModulePayload<ExtArgs>, T, "findMany", GlobalOmitOptions> | Null>
   /**
    * Attaches callbacks for the resolution and/or rejection of the Promise.
    * @param onfulfilled The callback to execute when the Promise is resolved.
@@ -1164,6 +1273,30 @@ export type ModuleDeleteManyArgs<ExtArgs extends runtime.Types.Extensions.Intern
    * Limit how many Modules to delete.
    */
   limit?: number
+}
+
+/**
+ * Module.projects
+ */
+export type Module$projectsArgs<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
+  /**
+   * Select specific fields to fetch from the ProjectModule
+   */
+  select?: Prisma.ProjectModuleSelect<ExtArgs> | null
+  /**
+   * Omit specific fields from the ProjectModule
+   */
+  omit?: Prisma.ProjectModuleOmit<ExtArgs> | null
+  /**
+   * Choose, which related nodes to fetch as well
+   */
+  include?: Prisma.ProjectModuleInclude<ExtArgs> | null
+  where?: Prisma.ProjectModuleWhereInput
+  orderBy?: Prisma.ProjectModuleOrderByWithRelationInput | Prisma.ProjectModuleOrderByWithRelationInput[]
+  cursor?: Prisma.ProjectModuleWhereUniqueInput
+  take?: number
+  skip?: number
+  distinct?: Prisma.ProjectModuleScalarFieldEnum | Prisma.ProjectModuleScalarFieldEnum[]
 }
 
 /**

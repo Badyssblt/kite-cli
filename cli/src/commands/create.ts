@@ -67,8 +67,9 @@ export const createCommand = new Command('create')
     }
 
     // Demander les modules ou utiliser l'option
-    const selectedModules = options.modules
-      ? options.modules.split(',').map(m => m.trim()).filter(Boolean)
+    // "none" = aucun module (permet de skip le prompt interactif)
+    const selectedModules = options.modules !== undefined
+      ? options.modules.split(',').map(m => m.trim()).filter(m => m && m !== 'none')
       : await promptService.askModules(frameworkId);
 
     // Résoudre les dépendances

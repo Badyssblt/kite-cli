@@ -2,7 +2,8 @@ import { defineEventHandler, readBody, setHeader, send } from "h3";
 import { exec } from "child_process";
 import { promisify } from "util";
 import fs from "fs";
-import path from "path";
+import { prisma } from "~~/server/utils/db";
+import { auth } from "~~/lib/auth";
 
 const execAsync = promisify(exec);
 
@@ -14,15 +15,22 @@ interface CreateProjectBody {
 
 export default defineEventHandler(async (event) => {
   try {
+    // Vérifier l'authentification
+    const session = await auth.api.getSession({
+      headers: event.headers,
+    });
+
+    if (!session || !session.user) {
+      return { success: false, error: "Unauthorized" };
+    }
+
     const body = await readBody<CreateProjectBody>(event);
 
     if (!body.projectName || !body.framework) {
       return { success: false, error: "projectName and framework are required" };
     }
 
-    const modulesArg = body.modules?.length > 0
-      ? `--modules "${body.modules.join(',')}"`
-      : '';
+    const modulesArg = `--modules "${body.modules?.length > 0 ? body.modules.join(',') : 'none'}"`;
 
     // Chemin vers la CLI (monté dans le container Docker)
     const cliPath = process.env.KITE_CLI_PATH || '/cli';
@@ -55,6 +63,26 @@ export default defineEventHandler(async (event) => {
     if (!result.success || !result.zipPath) {
       return result;
     }
+
+    // Sauvegarder le projet en base de données
+    await prisma.project.create({
+      data: {
+        name: body.projectName,
+        user: {
+          connect: { id: session.user.id },
+        },
+        framework: {
+          connect: { id: body.framework },
+        },
+        modules: {
+          create: body.modules.map((moduleId) => ({
+            module: {
+              connect: { id: moduleId },
+            },
+          })),
+        },
+      },
+    });
 
     // Lire le fichier zip et le retourner
     const zipPath = result.zipPath;

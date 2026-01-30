@@ -1,5 +1,8 @@
 <script setup lang="ts">
 import DashboardSidebar from '~/components/common/dashboard/Sidebar.vue'
+
+const { getProjects } = useProjects()
+const { data: projects } = await getProjects()
 </script>
 
 <template>

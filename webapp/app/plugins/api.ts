@@ -21,6 +21,7 @@ export default defineNuxtPlugin(() => {
       const response = await $fetch<TResponse>(endpoint, {
         method,
         body: body ? JSON.stringify(body) : undefined,
+        credentials: 'include',
         headers: {
           'Content-Type': 'application/json',
           ...headers

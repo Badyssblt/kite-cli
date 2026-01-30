@@ -28,6 +28,16 @@ export type Framework = Prisma.FrameworkModel
  */
 export type Module = Prisma.ModuleModel
 /**
+ * Model Project
+ * 
+ */
+export type Project = Prisma.ProjectModel
+/**
+ * Model ProjectModule
+ * 
+ */
+export type ProjectModule = Prisma.ProjectModuleModel
+/**
  * Model User
  * 
  */

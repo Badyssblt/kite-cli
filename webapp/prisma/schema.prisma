@@ -34,14 +34,15 @@ model Project {
 
   framework   Framework @relation(fields: [frameworkId], references: [id])
   frameworkId String
-
+  user       User      @relation(fields: [userId], references: [id])
+  userId     String
   modules     ProjectModule[]
 }
 
 model ProjectModule {
   project   Project @relation(fields: [projectId], references: [id])
   projectId String
-
+  
   module    Module  @relation(fields: [moduleId], references: [id])
   moduleId  String
 
@@ -58,6 +59,7 @@ model User {
   updatedAt     DateTime  @updatedAt
   sessions      Session[]
   accounts      Account[]
+  projects      Project[]
 }
 
 model Session {
