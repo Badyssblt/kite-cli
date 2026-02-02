@@ -51,7 +51,10 @@ export const AnyNull = runtime.AnyNull
 
 
 export const ModelName = {
-  Post: 'Post',
+  Framework: 'Framework',
+  Module: 'Module',
+  Project: 'Project',
+  ProjectModule: 'ProjectModule',
   User: 'User',
   Session: 'Session',
   Account: 'Account',
@@ -74,16 +77,44 @@ export const TransactionIsolationLevel = runtime.makeStrictEnum({
 export type TransactionIsolationLevel = (typeof TransactionIsolationLevel)[keyof typeof TransactionIsolationLevel]
 
 
-export const PostScalarFieldEnum = {
+export const FrameworkScalarFieldEnum = {
   id: 'id',
-  title: 'title',
-  content: 'content',
-  published: 'published',
-  createdAt: 'createdAt',
-  updatedAt: 'updatedAt'
+  name: 'name',
+  description: 'description'
 } as const
 
-export type PostScalarFieldEnum = (typeof PostScalarFieldEnum)[keyof typeof PostScalarFieldEnum]
+export type FrameworkScalarFieldEnum = (typeof FrameworkScalarFieldEnum)[keyof typeof FrameworkScalarFieldEnum]
+
+
+export const ModuleScalarFieldEnum = {
+  id: 'id',
+  name: 'name',
+  description: 'description',
+  frameworkId: 'frameworkId'
+} as const
+
+export type ModuleScalarFieldEnum = (typeof ModuleScalarFieldEnum)[keyof typeof ModuleScalarFieldEnum]
+
+
+export const ProjectScalarFieldEnum = {
+  id: 'id',
+  name: 'name',
+  description: 'description',
+  createdAt: 'createdAt',
+  updatedAt: 'updatedAt',
+  frameworkId: 'frameworkId',
+  userId: 'userId'
+} as const
+
+export type ProjectScalarFieldEnum = (typeof ProjectScalarFieldEnum)[keyof typeof ProjectScalarFieldEnum]
+
+
+export const ProjectModuleScalarFieldEnum = {
+  projectId: 'projectId',
+  moduleId: 'moduleId'
+} as const
+
+export type ProjectModuleScalarFieldEnum = (typeof ProjectModuleScalarFieldEnum)[keyof typeof ProjectModuleScalarFieldEnum]
 
 
 export const UserScalarFieldEnum = {
@@ -152,6 +183,25 @@ export const SortOrder = {
 export type SortOrder = (typeof SortOrder)[keyof typeof SortOrder]
 
 
+export const FrameworkOrderByRelevanceFieldEnum = {
+  id: 'id',
+  name: 'name',
+  description: 'description'
+} as const
+
+export type FrameworkOrderByRelevanceFieldEnum = (typeof FrameworkOrderByRelevanceFieldEnum)[keyof typeof FrameworkOrderByRelevanceFieldEnum]
+
+
+export const ModuleOrderByRelevanceFieldEnum = {
+  id: 'id',
+  name: 'name',
+  description: 'description',
+  frameworkId: 'frameworkId'
+} as const
+
+export type ModuleOrderByRelevanceFieldEnum = (typeof ModuleOrderByRelevanceFieldEnum)[keyof typeof ModuleOrderByRelevanceFieldEnum]
+
+
 export const NullsOrder = {
   first: 'first',
   last: 'last'
@@ -160,13 +210,23 @@ export const NullsOrder = {
 export type NullsOrder = (typeof NullsOrder)[keyof typeof NullsOrder]
 
 
-export const PostOrderByRelevanceFieldEnum = {
+export const ProjectOrderByRelevanceFieldEnum = {
   id: 'id',
-  title: 'title',
-  content: 'content'
+  name: 'name',
+  description: 'description',
+  frameworkId: 'frameworkId',
+  userId: 'userId'
 } as const
 
-export type PostOrderByRelevanceFieldEnum = (typeof PostOrderByRelevanceFieldEnum)[keyof typeof PostOrderByRelevanceFieldEnum]
+export type ProjectOrderByRelevanceFieldEnum = (typeof ProjectOrderByRelevanceFieldEnum)[keyof typeof ProjectOrderByRelevanceFieldEnum]
+
+
+export const ProjectModuleOrderByRelevanceFieldEnum = {
+  projectId: 'projectId',
+  moduleId: 'moduleId'
+} as const
+
+export type ProjectModuleOrderByRelevanceFieldEnum = (typeof ProjectModuleOrderByRelevanceFieldEnum)[keyof typeof ProjectModuleOrderByRelevanceFieldEnum]
 
 
 export const UserOrderByRelevanceFieldEnum = {

@@ -8,7 +8,10 @@
  *
  * 🟢 You can import this file directly.
  */
-export type * from './models/Post.js'
+export type * from './models/Framework.js'
+export type * from './models/Module.js'
+export type * from './models/Project.js'
+export type * from './models/ProjectModule.js'
 export type * from './models/User.js'
 export type * from './models/Session.js'
 export type * from './models/Account.js'

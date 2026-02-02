@@ -4,12 +4,13 @@ WORKDIR /app
 
 # Installation des dépendances uniquement (le code est monté en volume)
 COPY package*.json ./
-RUN npm install
+RUN npm install --legacy-peer-deps
 
 
 
-COPY prisma ./prisma
-RUN npx prisma generate
+# Les fichiers prisma sont montés en volume
+# COPY prisma ./prisma
+# RUN npx prisma generate
       
 
 EXPOSE 3000

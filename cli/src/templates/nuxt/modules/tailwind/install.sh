@@ -1,9 +1,7 @@
 #!/bin/bash
 
 # Install Tailwind CSS for Nuxt
-npm install -D @nuxtjs/tailwindcss
+npm install tailwindcss @tailwindcss/vite -D
 
-# Initialize Tailwind config
-npx tailwindcss init
 
 echo "Tailwind CSS installed"
