@@ -7,27 +7,46 @@ import {
 } from "@/components/ui/collapsible"
 import { Button } from "@/components/ui/button"
 
-const navigation = [
+const { getProjects } = useProjects()
+const { data: projects, pending, error } = await getProjects()
+
+const projectItems = computed(() => {
+  const items = [{ title: "Créer un projet", url: "/dashboard/project/create" }]
+
+  if (!projects.value?.length) {
+    return items
+  }
+
+  return [
+    ...items,
+    ...projects.value.map((project) => ({
+      title: project.name,
+    })),
+  ]
+})
+
+const hasProjects = computed(() => (projects.value?.length ?? 0) > 0)
+
+const navigation = computed(() => [
   {
+    id: "dashboard",
     title: "Dashboard",
     icon: Home,
     url: "/dashboard",
   },
   {
+    id: "projects",
     title: "Projets",
     icon: Folder,
-    items: [
-      { title: "Créer un projet", url: "/project/create" },
-      
-    ],
-  }
-]
+    items: projectItems.value,
+  },
+])
 </script>
 
 <template>
   <aside class="w-64 border-r bg-sidebar text-sidebar-foreground flex flex-col">
     <div class="p-4 border-b">
-      <h2 class="text-lg font-semibold">Mon App</h2>
+      <h2 class="text-lg font-semibold">Kite Boilerplate</h2>
     </div>
 
     <nav class="flex-1 p-2 space-y-1">
@@ -42,14 +61,29 @@ const navigation = [
             </Button>
           </CollapsibleTrigger>
           <CollapsibleContent class="ml-4 mt-1 space-y-1 border-l pl-2">
-            <NuxtLink
-              v-for="subItem in item.items"
-              :key="subItem.title"
-              :to="subItem.url"
-              class="block rounded-md px-3 py-2 text-sm hover:bg-sidebar-accent hover:text-sidebar-accent-foreground"
+            <template v-for="subItem in item.items" :key="subItem.title">
+              <NuxtLink
+                v-if="subItem.url"
+                :to="subItem.url"
+                class="block rounded-md px-3 py-2 text-sm hover:bg-sidebar-accent hover:text-sidebar-accent-foreground"
+              >
+                {{ subItem.title }}
+              </NuxtLink>
+              <div
+                v-else
+                class="block rounded-md px-3 py-2 text-sm text-muted-foreground"
+              >
+                {{ subItem.title }}
+              </div>
+            </template>
+            <div
+              v-if="item.id === 'projects'"
+              class="px-3 py-2 text-xs text-muted-foreground"
             >
-              {{ subItem.title }}
-            </NuxtLink>
+              <span v-if="pending">Chargement...</span>
+              <span v-else-if="error">Impossible de charger les projets</span>
+              <span v-else-if="!hasProjects">Aucun projet pour le moment</span>
+            </div>
           </CollapsibleContent>
         </Collapsible>
 

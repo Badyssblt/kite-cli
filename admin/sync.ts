@@ -1,9 +1,9 @@
 import { readdir } from "fs/promises";
 import path from "path";
 import { pathToFileURL } from "url";
+import { execSync } from "child_process";
 import { BaseFramework } from "../cli/src/frameworks/base";
-import { log } from "console";
-
+import 'dotenv/config';
 // Types simplifiés pour la BDD
 interface ModuleLite {
   id: string;
@@ -52,7 +52,7 @@ export const sync = async (): Promise<FrameworkLite[]> => {
       modules: framework.modules.map(m => ({
         id: m.id,
         name: m.name,
-        description: m.description
+        description: m.description ?? ''
       }))
     };
 
@@ -60,16 +60,23 @@ export const sync = async (): Promise<FrameworkLite[]> => {
   }
 
   try {
+    
     const response = await fetch('http://localhost:3000/api/cli/update-base', {
         method: 'POST',
         headers: {
-          'Content-Type': 'application/json'
+          'Content-Type': 'application/json',
+          'X-API-KEY': process.env.KITE_API_KEY || ''
         },
         body: JSON.stringify(frameworksInfo),
       })
       const data = await response.json();
       console.log(data);
-      
+
+      // Met à jour le cache local
+      console.log('🔄 Mise à jour du cache local...');
+      execSync('./node_modules/.bin/tsx src/index.ts sync', { stdio: 'inherit', cwd: 'cli' });
+      console.log('✅ Cache local mis à jour');
+
   }catch(e){
     console.log(e);
     

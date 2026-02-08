@@ -11,6 +11,10 @@ import { betterAuthModule } from './modules/better-auth';
 import { stripeModule } from './modules/stripe';
 import { dockerModule } from './modules/docker';
 import { eslintModule } from './modules/eslint';
+import { supabaseModule } from './modules/supabase';
+import { i18nModule } from './modules/i18n';
+import { vitestModule } from './modules/vitest';
+import { zustandModule } from './modules/zustand';
 
 export class NextJsFramework extends BaseFramework {
   id = 'nextjs';
@@ -21,11 +25,15 @@ export class NextJsFramework extends BaseFramework {
 
   modules: ModuleDefinition[] = [
     prismaModule,
+    supabaseModule,
     betterAuthModule,
     stripeModule,
     shadcnModule,
     tailwindModule,
+    zustandModule,
+    i18nModule,
     eslintModule,
+    vitestModule,
     dockerModule
   ];
 

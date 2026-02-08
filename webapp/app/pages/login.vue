@@ -1,163 +1,91 @@
 <script setup lang="ts">
 import { authClient } from "~~/lib/auth-client";
+import { Button } from "@/components/ui/button";
+import { Separator } from "@/components/ui/separator";
 
-const email = ref("");
-const password = ref("");
 const error = ref("");
-const loading = ref(false);
-
-async function handleEmailLogin() {
-  loading.value = true;
-  error.value = "";
-
-  const result = await authClient.signIn.email({
-    email: email.value,
-    password: password.value,
-  });
-
-  if (result.error) {
-    error.value = result.error.message || "Erreur de connexion";
-  } else {
-    navigateTo("/dashboard");
-  }
-
-  loading.value = false;
-}
+const loadingGithub = ref(false);
 
 async function handleGitHubLogin() {
-  await authClient.signIn.social({ provider: "github" });
-}
+  if (loadingGithub.value) return;
+  loadingGithub.value = true;
+  error.value = "";
 
-async function handleGoogleLogin() {
-  await authClient.signIn.social({ provider: "google" });
+  try {
+    const result = await authClient.signIn.social({
+      provider: "github",
+      scopes: ["read:user", "user:email", "repo"],
+      callbackURL: "/dashboard",
+      errorCallbackURL: "/login",
+    });
+
+    if (result?.error) {
+      error.value = result.error.message || "Erreur de connexion GitHub";
+    }
+  } catch {
+    error.value = "Erreur de connexion GitHub";
+  } finally {
+    loadingGithub.value = false;
+  }
 }
 </script>
 
 <template>
-  <div class="auth-container">
-    <h1>Connexion</h1>
+  <div class="relative min-h-screen overflow-hidden bg-background">
+    <div
+      class="pointer-events-none absolute inset-0 bg-[radial-gradient(circle_at_top,_var(--tw-gradient-stops))] from-neutral-100 via-background to-background"
+    />
+    <div class="absolute -left-16 top-10 h-64 w-64 rounded-full bg-neutral-200/60 blur-3xl" />
+    <div class="absolute -right-24 bottom-10 h-72 w-72 rounded-full bg-neutral-300/40 blur-3xl" />
 
-    <form @submit.prevent="handleEmailLogin" class="auth-form">
-      <div class="form-group">
-        <label for="email">Email</label>
-        <input
-          id="email"
-          v-model="email"
-          type="email"
-          required
-          placeholder="votre@email.com"
-        />
+    <div class="relative z-10 flex min-h-screen items-center justify-center px-4 py-12">
+      <div class="w-full max-w-md">
+        <div class="mb-6 text-center">
+          <p class="text-sm font-medium text-muted-foreground">Bienvenue sur Kite</p>
+          <h1 class="mt-2 text-3xl font-semibold tracking-tight text-foreground">
+            Connexion
+          </h1>
+          <p class="mt-2 text-sm text-muted-foreground">
+            Accédez à votre espace et reprenez là où vous étiez.
+          </p>
+        </div>
+
+        <div
+          class="rounded-2xl border border-border/60 bg-card/80 p-6 shadow-lg shadow-black/5 backdrop-blur"
+        >
+          <div class="grid gap-4">
+            <Button
+              type="button"
+              class="w-full justify-center gap-2"
+              :disabled="loadingGithub"
+              @click="handleGitHubLogin"
+            >
+              {{ loadingGithub ? "Connexion..." : "Continuer avec GitHub" }}
+            </Button>
+
+            <p v-if="error" class="text-sm font-medium text-destructive">
+              {{ error }}
+            </p>
+          </div>
+
+          <div class="my-6 flex items-center gap-3 text-xs text-muted-foreground">
+            <Separator class="flex-1" />
+            <span>ou</span>
+            <Separator class="flex-1" />
+          </div>
+
+          <p class="text-xs text-muted-foreground text-center">
+            Connexion sécurisée via OAuth GitHub.
+          </p>
+        </div>
+
+        <p class="mt-6 text-center text-sm text-muted-foreground">
+          Pas encore de compte ?
+          <NuxtLink to="/register" class="font-medium text-foreground hover:underline">
+            S'inscrire
+          </NuxtLink>
+        </p>
       </div>
-
-      <div class="form-group">
-        <label for="password">Mot de passe</label>
-        <input
-          id="password"
-          v-model="password"
-          type="password"
-          required
-          placeholder="••••••••"
-        />
-      </div>
-
-      <p v-if="error" class="error">{{ error }}</p>
-
-      <button type="submit" :disabled="loading">
-        {{ loading ? "Connexion..." : "Se connecter" }}
-      </button>
-    </form>
-
-    <div class="divider">
-      <span>ou</span>
     </div>
-
-    <div class="social-buttons">
-      <button @click="handleGitHubLogin" class="github">
-        Continuer avec GitHub
-      </button>
-      <button @click="handleGoogleLogin" class="google">
-        Continuer avec Google
-      </button>
-    </div>
-
-    <p class="link">
-      Pas encore de compte ?
-      <NuxtLink to="/register">S'inscrire</NuxtLink>
-    </p>
   </div>
 </template>
-
-<style scoped>
-.auth-container {
-  max-width: 400px;
-  margin: 2rem auto;
-  padding: 2rem;
-}
-
-.auth-form {
-  display: flex;
-  flex-direction: column;
-  gap: 1rem;
-}
-
-.form-group {
-  display: flex;
-  flex-direction: column;
-  gap: 0.5rem;
-}
-
-input {
-  padding: 0.75rem;
-  border: 1px solid #ccc;
-  border-radius: 4px;
-}
-
-button {
-  padding: 0.75rem;
-  border: none;
-  border-radius: 4px;
-  cursor: pointer;
-  font-weight: 500;
-}
-
-button[type="submit"] {
-  background: #000;
-  color: #fff;
-}
-
-button:disabled {
-  opacity: 0.5;
-}
-
-.divider {
-  text-align: center;
-  margin: 1.5rem 0;
-  color: #666;
-}
-
-.social-buttons {
-  display: flex;
-  flex-direction: column;
-  gap: 0.5rem;
-}
-
-.github {
-  background: #24292e;
-  color: #fff;
-}
-
-.google {
-  background: #4285f4;
-  color: #fff;
-}
-
-.error {
-  color: red;
-  font-size: 0.875rem;
-}
-
-.link {
-  text-align: center;
-  margin-top: 1rem;
-}
-</style>

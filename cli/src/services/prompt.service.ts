@@ -15,6 +15,18 @@ export class PromptService {
     });
   }
 
+  async askProvider(): Promise<String> {
+    const choices = [
+      { name: 'GitHub', value: 'github' },
+      { name: 'GitLab', value: 'gitlab' },
+      { name: 'Bitbucket', value: 'bitbucket' },
+    ];
+    return select({
+      message: 'Choisissez un fournisseur de dépôt:',
+      choices
+    });
+  }
+
   // Demander le choix du framework
   async askFramework(): Promise<string> {
     const choices = frameworkRegistry.getChoices();

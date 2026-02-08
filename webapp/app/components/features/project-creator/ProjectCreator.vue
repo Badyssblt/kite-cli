@@ -1,8 +1,25 @@
 <script setup lang="ts">
-import { ref, computed, watch } from 'vue';
+import { ref, computed, watch, onMounted } from 'vue';
 import { toast } from 'vue-sonner';
-import { Download } from 'lucide-vue-next';
+import { Download, Github, ChevronDown, Lock, Globe } from 'lucide-vue-next';
 import { Button } from '@/components/ui/button';
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuTrigger,
+} from '@/components/ui/dropdown-menu';
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogFooter,
+  DialogHeader,
+  DialogTitle,
+} from '@/components/ui/dialog';
+import { Input } from '@/components/ui/input';
+import { Label } from '@/components/ui/label';
+import { Switch } from '@/components/ui/switch';
 import Explorer from './Explorer.vue';
 import FilePreview from './FilePreview.vue';
 import ConfigPanel from './ConfigPanel.vue';
@@ -23,6 +40,37 @@ const openFile = ref<OpenFile | null>(null);
 const isLoadingFile = ref(false);
 const selectedFilePath = ref<string | undefined>();
 const isCreating = ref(false);
+
+// GitHub state
+const isGithubConnected = ref(false);
+const hasRepoScope = ref(false);
+const githubUsername = ref('');
+const showGithubDialog = ref(false);
+const repoName = ref('');
+const isPrivateRepo = ref(false);
+const isPushing = ref(false);
+
+// Check GitHub connection status
+onMounted(async () => {
+  try {
+    const response = await $fetch<{ connected: boolean; username?: string; hasRepoScope?: boolean }>('/api/github/status');
+    isGithubConnected.value = response.connected;
+    hasRepoScope.value = response.hasRepoScope ?? false;
+    if (response.username) {
+      githubUsername.value = response.username;
+    }
+  } catch (err) {
+    console.error('Error checking GitHub status:', err);
+  }
+});
+
+// Computed: can push to GitHub
+const canPushToGithub = computed(() => isGithubConnected.value && hasRepoScope.value);
+
+// Sync repo name with project name
+watch(projectName, (newName) => {
+  repoName.value = newName;
+});
 
 // Computed
 const canCreate = computed(() => {
@@ -117,8 +165,54 @@ async function handleSelectFile(node: TreeNode, path: string) {
 }
 
 
-// Create project
-async function createProject() {
+// Open GitHub dialog
+function openGithubDialog() {
+  repoName.value = projectName.value;
+  showGithubDialog.value = true;
+}
+
+// Push to GitHub
+async function pushToGithub() {
+  if (!canCreate.value || !repoName.value.trim()) return;
+
+  isPushing.value = true;
+
+  try {
+    const response = await $fetch<{
+      success: boolean;
+      repoUrl?: string;
+      message?: string;
+    }>('/api/github/push', {
+      method: 'POST',
+      body: {
+        projectName: projectName.value,
+        framework: selectedFrameworkId.value,
+        modules: selectedModules.value,
+        repoName: repoName.value,
+        isPrivate: isPrivateRepo.value,
+      },
+    });
+
+    if (response.success && response.repoUrl) {
+      showGithubDialog.value = false;
+      toast.success('Repository créé !', {
+        description: `Projet pushé sur GitHub`,
+        action: {
+          label: 'Ouvrir',
+          onClick: () => window.open(response.repoUrl, '_blank'),
+        },
+      });
+    }
+  } catch (err: any) {
+    const message = err.data?.message || err.message || 'Erreur lors du push';
+    toast.error('Erreur', { description: message });
+  } finally {
+    isPushing.value = false;
+  }
+}
+
+// Download project (create ZIP)
+async function downloadProject() {
   if (!canCreate.value) return;
 
   isCreating.value = true;
@@ -175,15 +269,98 @@ async function createProject() {
         </span>
       </div>
 
+      <!-- GitHub connected: show dropdown with both options -->
+      <DropdownMenu v-if="isGithubConnected">
+        <DropdownMenuTrigger as-child>
+          <Button size="sm" :disabled="!canCreate || isCreating || isPushing">
+            <Github v-if="!isCreating && !isPushing" class="size-4 mr-2" />
+            {{ isCreating || isPushing ? 'Création...' : 'Créer' }}
+            <ChevronDown class="size-4 ml-2" />
+          </Button>
+        </DropdownMenuTrigger>
+        <DropdownMenuContent align="end">
+          <DropdownMenuItem @click="openGithubDialog">
+            <Github class="size-4 mr-2" />
+            Push vers GitHub
+          </DropdownMenuItem>
+          <DropdownMenuItem @click="downloadProject">
+            <Download class="size-4 mr-2" />
+            Télécharger (.zip)
+          </DropdownMenuItem>
+        </DropdownMenuContent>
+      </DropdownMenu>
+
+      <!-- Not connected: show download button only -->
       <Button
+        v-else
         size="sm"
         :disabled="!canCreate || isCreating"
-        @click="createProject"
+        @click="downloadProject"
       >
         <Download v-if="!isCreating" class="size-4 mr-2" />
         {{ isCreating ? 'Création...' : 'Télécharger' }}
       </Button>
     </div>
+
+    <!-- GitHub Push Dialog -->
+    <Dialog v-model:open="showGithubDialog">
+      <DialogContent class="sm:max-w-md">
+        <DialogHeader>
+          <DialogTitle>Push vers GitHub</DialogTitle>
+          <DialogDescription>
+            Créer un nouveau repository et y pusher votre projet.
+          </DialogDescription>
+        </DialogHeader>
+
+        <div class="space-y-4 py-4">
+          <div class="space-y-2">
+            <Label for="repo-name">Nom du repository</Label>
+            <div class="flex items-center gap-2">
+              <span class="text-sm text-muted-foreground">{{ githubUsername }} /</span>
+              <Input
+                id="repo-name"
+                v-model="repoName"
+                placeholder="my-project"
+                class="flex-1"
+              />
+            </div>
+          </div>
+
+          <div class="flex items-center justify-between">
+            <div class="space-y-0.5">
+              <Label for="private-repo">Repository privé</Label>
+              <p class="text-sm text-muted-foreground">
+                {{ isPrivateRepo ? 'Seul vous pourrez voir ce repo' : 'Tout le monde pourra voir ce repo' }}
+              </p>
+            </div>
+            <Switch
+              id="private-repo"
+              v-model:checked="isPrivateRepo"
+            />
+          </div>
+
+          <div class="flex items-center gap-2 p-3 rounded-lg bg-muted/50">
+            <component :is="isPrivateRepo ? Lock : Globe" class="size-4 text-muted-foreground" />
+            <span class="text-sm">
+              {{ isPrivateRepo ? 'Private' : 'Public' }} repository
+            </span>
+          </div>
+        </div>
+
+        <DialogFooter>
+          <Button variant="outline" @click="showGithubDialog = false">
+            Annuler
+          </Button>
+          <Button
+            :disabled="!repoName.trim() || isPushing"
+            @click="pushToGithub"
+          >
+            <Github v-if="!isPushing" class="size-4 mr-2" />
+            {{ isPushing ? 'Push en cours...' : 'Push' }}
+          </Button>
+        </DialogFooter>
+      </DialogContent>
+    </Dialog>
 
     <!-- Main Content -->
     <div class="flex-1 flex min-h-0">

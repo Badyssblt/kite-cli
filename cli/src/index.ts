@@ -11,6 +11,7 @@ import { syncCommand } from './commands/sync';
 import { frameworkRegistry } from './core/framework-registry';
 import { nuxtFramework } from './frameworks/nuxt';
 import { nextJsFramework } from './frameworks/nextjs';
+import { initCommand } from './commands/init';
 
 // Enregistrer les frameworks disponibles
 frameworkRegistry.register(nuxtFramework.toDefinition());
@@ -28,4 +29,5 @@ program.addCommand(addCommand);
 program.addCommand(previewCommand);
 program.addCommand(fileContentCommand);
 program.addCommand(syncCommand);
+program.addCommand(initCommand);
 program.parse(process.argv);
