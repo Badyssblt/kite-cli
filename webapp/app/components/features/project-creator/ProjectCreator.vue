@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { ref, computed, watch, onMounted } from 'vue';
+import { ref, computed, watch, onMounted, nextTick } from 'vue';
 import { toast } from 'vue-sonner';
 import { Download, Github, ChevronDown, Lock, Globe } from 'lucide-vue-next';
 import { Button } from '@/components/ui/button';
@@ -24,16 +24,19 @@ import Explorer from './Explorer.vue';
 import FilePreview from './FilePreview.vue';
 import ConfigPanel from './ConfigPanel.vue';
 import StatusBar from './StatusBar.vue';
-import type { TreeNode, OpenFile, Framework } from './types';
+import type { TreeNode, OpenFile, Framework, Preset } from './types';
 
 const props = defineProps<{
   frameworks: Framework[];
+  presets: Preset[];
 }>();
 
 // State
 const projectName = ref('my-project');
 const selectedFrameworkId = ref('');
 const selectedModules = ref<string[]>([]);
+const activePresetId = ref<string | null>(null);
+const isPresetChange = ref(false);
 const fileTree = ref<TreeNode | null>(null);
 const isLoadingTree = ref(false);
 const openFile = ref<OpenFile | null>(null);
@@ -87,11 +90,62 @@ function countFiles(node: TreeNode): number {
   return (node.children || []).reduce((acc, child) => acc + countFiles(child), 0);
 }
 
-// Reset modules when framework changes
-watch(selectedFrameworkId, () => {
-  selectedModules.value = [];
+// When a preset is selected, apply its framework and modules
+watch(activePresetId, (presetId) => {
+  if (!presetId) return;
+
+  const preset = props.presets.find((p) => p.id === presetId);
+  if (!preset) return;
+
+  isPresetChange.value = true;
+
+  const frameworkId = preset.frameworks.length ? preset.frameworks[0] : selectedFrameworkId.value;
+  const fw = props.frameworks.find((f) => f.id === frameworkId);
+  const fwModuleIds = fw ? fw.modules.map((m) => m.id) : [];
+  const presetModules = preset.modules.filter((m) => fwModuleIds.includes(m));
+
+  selectedFrameworkId.value = frameworkId;
+  selectedModules.value = presetModules;
   openFile.value = null;
   selectedFilePath.value = undefined;
+
+  nextTick(() => {
+    isPresetChange.value = false;
+  });
+});
+
+// When framework changes: reapply preset modules if preset active, otherwise reset
+watch(selectedFrameworkId, (newVal, oldVal) => {
+  if (isPresetChange.value) return;
+
+  openFile.value = null;
+  selectedFilePath.value = undefined;
+
+  if (activePresetId.value) {
+    // Preset active: reapply its modules for the new framework
+    const preset = props.presets.find((p) => p.id === activePresetId.value);
+    if (preset) {
+      isPresetChange.value = true;
+      const fw = props.frameworks.find((f) => f.id === newVal);
+      const fwModuleIds = fw ? fw.modules.map((m) => m.id) : [];
+      selectedModules.value = preset.modules.filter((m) => fwModuleIds.includes(m));
+      nextTick(() => {
+        isPresetChange.value = false;
+      });
+      return;
+    }
+  }
+
+  selectedModules.value = [];
+  if (oldVal) {
+    activePresetId.value = null;
+  }
+});
+
+// Reset active preset when modules are changed manually
+watch(selectedModules, () => {
+  if (isPresetChange.value) return;
+  activePresetId.value = null;
 });
 
 // Fetch file tree
@@ -390,9 +444,12 @@ async function downloadProject() {
           :selected-framework-id="selectedFrameworkId"
           :selected-modules="selectedModules"
           :project-name="projectName"
+          :presets="presets"
+          :active-preset-id="activePresetId"
           @update:project-name="projectName = $event"
           @update:selected-framework-id="selectedFrameworkId = $event"
           @update:selected-modules="selectedModules = $event"
+          @update:active-preset-id="activePresetId = $event"
         />
       </div>
     </div>

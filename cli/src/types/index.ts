@@ -151,3 +151,16 @@ export interface DockerComposeConfig {
   volumes?: Record<string, object>;
   networks?: Record<string, object>;
 }
+
+
+
+/**
+ * Définition d'un preset de configuration prédéfini
+ */
+export interface PresetDefinition {
+  name: string;
+  description: string;
+  framework: string | string[];
+  modules: string[];
+  answers?: ModuleAnswers;
+}

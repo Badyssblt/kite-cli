@@ -391,7 +391,10 @@ export const ModelName = {
   User: 'User',
   Session: 'Session',
   Account: 'Account',
-  Verification: 'Verification'
+  Verification: 'Verification',
+  Preset: 'Preset',
+  PresetFramework: 'PresetFramework',
+  PresetModule: 'PresetModule'
 } as const
 
 export type ModelName = (typeof ModelName)[keyof typeof ModelName]
@@ -407,7 +410,7 @@ export type TypeMap<ExtArgs extends runtime.Types.Extensions.InternalArgs = runt
     omit: GlobalOmitOptions
   }
   meta: {
-    modelProps: "framework" | "module" | "project" | "projectModule" | "user" | "session" | "account" | "verification"
+    modelProps: "framework" | "module" | "project" | "projectModule" | "user" | "session" | "account" | "verification" | "preset" | "presetFramework" | "presetModule"
     txIsolationLevel: TransactionIsolationLevel
   }
   model: {
@@ -939,6 +942,204 @@ export type TypeMap<ExtArgs extends runtime.Types.Extensions.InternalArgs = runt
         }
       }
     }
+    Preset: {
+      payload: Prisma.$PresetPayload<ExtArgs>
+      fields: Prisma.PresetFieldRefs
+      operations: {
+        findUnique: {
+          args: Prisma.PresetFindUniqueArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$PresetPayload> | null
+        }
+        findUniqueOrThrow: {
+          args: Prisma.PresetFindUniqueOrThrowArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$PresetPayload>
+        }
+        findFirst: {
+          args: Prisma.PresetFindFirstArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$PresetPayload> | null
+        }
+        findFirstOrThrow: {
+          args: Prisma.PresetFindFirstOrThrowArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$PresetPayload>
+        }
+        findMany: {
+          args: Prisma.PresetFindManyArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$PresetPayload>[]
+        }
+        create: {
+          args: Prisma.PresetCreateArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$PresetPayload>
+        }
+        createMany: {
+          args: Prisma.PresetCreateManyArgs<ExtArgs>
+          result: BatchPayload
+        }
+        delete: {
+          args: Prisma.PresetDeleteArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$PresetPayload>
+        }
+        update: {
+          args: Prisma.PresetUpdateArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$PresetPayload>
+        }
+        deleteMany: {
+          args: Prisma.PresetDeleteManyArgs<ExtArgs>
+          result: BatchPayload
+        }
+        updateMany: {
+          args: Prisma.PresetUpdateManyArgs<ExtArgs>
+          result: BatchPayload
+        }
+        upsert: {
+          args: Prisma.PresetUpsertArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$PresetPayload>
+        }
+        aggregate: {
+          args: Prisma.PresetAggregateArgs<ExtArgs>
+          result: runtime.Types.Utils.Optional<Prisma.AggregatePreset>
+        }
+        groupBy: {
+          args: Prisma.PresetGroupByArgs<ExtArgs>
+          result: runtime.Types.Utils.Optional<Prisma.PresetGroupByOutputType>[]
+        }
+        count: {
+          args: Prisma.PresetCountArgs<ExtArgs>
+          result: runtime.Types.Utils.Optional<Prisma.PresetCountAggregateOutputType> | number
+        }
+      }
+    }
+    PresetFramework: {
+      payload: Prisma.$PresetFrameworkPayload<ExtArgs>
+      fields: Prisma.PresetFrameworkFieldRefs
+      operations: {
+        findUnique: {
+          args: Prisma.PresetFrameworkFindUniqueArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$PresetFrameworkPayload> | null
+        }
+        findUniqueOrThrow: {
+          args: Prisma.PresetFrameworkFindUniqueOrThrowArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$PresetFrameworkPayload>
+        }
+        findFirst: {
+          args: Prisma.PresetFrameworkFindFirstArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$PresetFrameworkPayload> | null
+        }
+        findFirstOrThrow: {
+          args: Prisma.PresetFrameworkFindFirstOrThrowArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$PresetFrameworkPayload>
+        }
+        findMany: {
+          args: Prisma.PresetFrameworkFindManyArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$PresetFrameworkPayload>[]
+        }
+        create: {
+          args: Prisma.PresetFrameworkCreateArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$PresetFrameworkPayload>
+        }
+        createMany: {
+          args: Prisma.PresetFrameworkCreateManyArgs<ExtArgs>
+          result: BatchPayload
+        }
+        delete: {
+          args: Prisma.PresetFrameworkDeleteArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$PresetFrameworkPayload>
+        }
+        update: {
+          args: Prisma.PresetFrameworkUpdateArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$PresetFrameworkPayload>
+        }
+        deleteMany: {
+          args: Prisma.PresetFrameworkDeleteManyArgs<ExtArgs>
+          result: BatchPayload
+        }
+        updateMany: {
+          args: Prisma.PresetFrameworkUpdateManyArgs<ExtArgs>
+          result: BatchPayload
+        }
+        upsert: {
+          args: Prisma.PresetFrameworkUpsertArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$PresetFrameworkPayload>
+        }
+        aggregate: {
+          args: Prisma.PresetFrameworkAggregateArgs<ExtArgs>
+          result: runtime.Types.Utils.Optional<Prisma.AggregatePresetFramework>
+        }
+        groupBy: {
+          args: Prisma.PresetFrameworkGroupByArgs<ExtArgs>
+          result: runtime.Types.Utils.Optional<Prisma.PresetFrameworkGroupByOutputType>[]
+        }
+        count: {
+          args: Prisma.PresetFrameworkCountArgs<ExtArgs>
+          result: runtime.Types.Utils.Optional<Prisma.PresetFrameworkCountAggregateOutputType> | number
+        }
+      }
+    }
+    PresetModule: {
+      payload: Prisma.$PresetModulePayload<ExtArgs>
+      fields: Prisma.PresetModuleFieldRefs
+      operations: {
+        findUnique: {
+          args: Prisma.PresetModuleFindUniqueArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$PresetModulePayload> | null
+        }
+        findUniqueOrThrow: {
+          args: Prisma.PresetModuleFindUniqueOrThrowArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$PresetModulePayload>
+        }
+        findFirst: {
+          args: Prisma.PresetModuleFindFirstArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$PresetModulePayload> | null
+        }
+        findFirstOrThrow: {
+          args: Prisma.PresetModuleFindFirstOrThrowArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$PresetModulePayload>
+        }
+        findMany: {
+          args: Prisma.PresetModuleFindManyArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$PresetModulePayload>[]
+        }
+        create: {
+          args: Prisma.PresetModuleCreateArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$PresetModulePayload>
+        }
+        createMany: {
+          args: Prisma.PresetModuleCreateManyArgs<ExtArgs>
+          result: BatchPayload
+        }
+        delete: {
+          args: Prisma.PresetModuleDeleteArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$PresetModulePayload>
+        }
+        update: {
+          args: Prisma.PresetModuleUpdateArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$PresetModulePayload>
+        }
+        deleteMany: {
+          args: Prisma.PresetModuleDeleteManyArgs<ExtArgs>
+          result: BatchPayload
+        }
+        updateMany: {
+          args: Prisma.PresetModuleUpdateManyArgs<ExtArgs>
+          result: BatchPayload
+        }
+        upsert: {
+          args: Prisma.PresetModuleUpsertArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$PresetModulePayload>
+        }
+        aggregate: {
+          args: Prisma.PresetModuleAggregateArgs<ExtArgs>
+          result: runtime.Types.Utils.Optional<Prisma.AggregatePresetModule>
+        }
+        groupBy: {
+          args: Prisma.PresetModuleGroupByArgs<ExtArgs>
+          result: runtime.Types.Utils.Optional<Prisma.PresetModuleGroupByOutputType>[]
+        }
+        count: {
+          args: Prisma.PresetModuleCountArgs<ExtArgs>
+          result: runtime.Types.Utils.Optional<Prisma.PresetModuleCountAggregateOutputType> | number
+        }
+      }
+    }
   }
 } & {
   other: {
@@ -1076,6 +1277,34 @@ export const VerificationScalarFieldEnum = {
 export type VerificationScalarFieldEnum = (typeof VerificationScalarFieldEnum)[keyof typeof VerificationScalarFieldEnum]
 
 
+export const PresetScalarFieldEnum = {
+  id: 'id',
+  name: 'name',
+  description: 'description',
+  image: 'image',
+  createdAt: 'createdAt',
+  updatedAt: 'updatedAt'
+} as const
+
+export type PresetScalarFieldEnum = (typeof PresetScalarFieldEnum)[keyof typeof PresetScalarFieldEnum]
+
+
+export const PresetFrameworkScalarFieldEnum = {
+  presetId: 'presetId',
+  frameworkId: 'frameworkId'
+} as const
+
+export type PresetFrameworkScalarFieldEnum = (typeof PresetFrameworkScalarFieldEnum)[keyof typeof PresetFrameworkScalarFieldEnum]
+
+
+export const PresetModuleScalarFieldEnum = {
+  presetId: 'presetId',
+  moduleId: 'moduleId'
+} as const
+
+export type PresetModuleScalarFieldEnum = (typeof PresetModuleScalarFieldEnum)[keyof typeof PresetModuleScalarFieldEnum]
+
+
 export const SortOrder = {
   asc: 'asc',
   desc: 'desc'
@@ -1173,6 +1402,32 @@ export const VerificationOrderByRelevanceFieldEnum = {
 } as const
 
 export type VerificationOrderByRelevanceFieldEnum = (typeof VerificationOrderByRelevanceFieldEnum)[keyof typeof VerificationOrderByRelevanceFieldEnum]
+
+
+export const PresetOrderByRelevanceFieldEnum = {
+  id: 'id',
+  name: 'name',
+  description: 'description',
+  image: 'image'
+} as const
+
+export type PresetOrderByRelevanceFieldEnum = (typeof PresetOrderByRelevanceFieldEnum)[keyof typeof PresetOrderByRelevanceFieldEnum]
+
+
+export const PresetFrameworkOrderByRelevanceFieldEnum = {
+  presetId: 'presetId',
+  frameworkId: 'frameworkId'
+} as const
+
+export type PresetFrameworkOrderByRelevanceFieldEnum = (typeof PresetFrameworkOrderByRelevanceFieldEnum)[keyof typeof PresetFrameworkOrderByRelevanceFieldEnum]
+
+
+export const PresetModuleOrderByRelevanceFieldEnum = {
+  presetId: 'presetId',
+  moduleId: 'moduleId'
+} as const
+
+export type PresetModuleOrderByRelevanceFieldEnum = (typeof PresetModuleOrderByRelevanceFieldEnum)[keyof typeof PresetModuleOrderByRelevanceFieldEnum]
 
 
 
@@ -1311,6 +1566,9 @@ export type GlobalOmitConfig = {
   session?: Prisma.SessionOmit
   account?: Prisma.AccountOmit
   verification?: Prisma.VerificationOmit
+  preset?: Prisma.PresetOmit
+  presetFramework?: Prisma.PresetFrameworkOmit
+  presetModule?: Prisma.PresetModuleOmit
 }
 
 /* Types for Logging */

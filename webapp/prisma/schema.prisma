@@ -12,6 +12,7 @@ model Framework {
   description String
   modules     Module[]
   projects    Project[]
+  presets     PresetFramework[]
 }
 
 model Module {
@@ -23,6 +24,7 @@ model Module {
   frameworkId String
 
   projects    ProjectModule[]
+  presets     PresetModule[]
 }
 
 model Project {
@@ -98,4 +100,35 @@ model Verification {
   expiresAt  DateTime
   createdAt  DateTime @default(now())
   updatedAt  DateTime @updatedAt
+}
+
+model Preset {
+  id          String    @id @default(cuid())
+  name        String
+  description String?
+  image       String?
+  frameworks  PresetFramework[]
+  modules     PresetModule[]
+  createdAt   DateTime  @default(now())
+  updatedAt   DateTime  @updatedAt
+}
+
+model PresetFramework {
+  preset      Preset    @relation(fields: [presetId], references: [id], onDelete: Cascade)
+  presetId    String
+
+  framework   Framework @relation(fields: [frameworkId], references: [id])
+  frameworkId String
+
+  @@id([presetId, frameworkId])
+}
+
+model PresetModule {
+  preset    Preset @relation(fields: [presetId], references: [id], onDelete: Cascade)
+  presetId  String
+
+  module    Module @relation(fields: [moduleId], references: [id])
+  moduleId  String
+
+  @@id([presetId, moduleId])
 }

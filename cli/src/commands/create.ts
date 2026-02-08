@@ -12,6 +12,9 @@ import { templateService } from '../services/template.service';
 import { setupService } from '../services/setup.service';
 import { installService } from '../services/install.service';
 import { promptService } from '../services/prompt.service';
+import { manifestService, type PackageManager } from '../services/manifest.service';
+import { presets } from '../presets';
+import { debug } from '../utils/debug';
 import type { ModuleAnswers } from '../types';
 
 interface CreateOptions {
@@ -22,6 +25,9 @@ interface CreateOptions {
   json?: boolean;
   zip?: boolean;
   output?: string;
+  dryRun?: boolean;
+  pm?: string;
+  preset?: string;
 }
 
 async function createZipFromDirectory(sourceDir: string, outputPath: string): Promise<void> {
@@ -47,13 +53,31 @@ export const createCommand = new Command('create')
   .option('--json', 'Output result as JSON')
   .option('--zip', 'Output project as a zip file')
   .option('-o, --output <path>', 'Output directory for the zip file')
+  .option('--dry-run', 'Preview what would be created without making changes')
+  .option('--pm <manager>', 'Package manager to use (npm, pnpm, yarn, bun)')
+  .option('--preset <preset>', 'Use a preset configuration')
   .action(async (options: CreateOptions) => {
     const isNonInteractive = options.name && options.framework;
 
     // Demander le nom du projet ou utiliser l'option
     const projectName = options.name || await promptService.askProjectName();
 
-    // Demander le framework ou utiliser l'option
+    // Preset : résoudre en premier car il fournit framework + modules
+    let activePreset = options.preset ? presets[options.preset] ?? null : null;
+
+    if (options.preset && !activePreset) {
+      if (options.json) {
+        console.log(JSON.stringify({ success: false, error: `Preset "${options.preset}" not found` }));
+      } else {
+        console.error(`Preset "${options.preset}" non trouvé`);
+        console.log('Presets disponibles:', Object.keys(presets).join(', '));
+      }
+      return;
+    }
+
+
+    // Framework : --framework flag > prompt interactif
+    // Le preset ne force pas le framework, il filtre juste sa compatibilité
     const frameworkId = options.framework || await promptService.askFramework();
     const framework = frameworkRegistry.get(frameworkId);
 
@@ -66,11 +90,28 @@ export const createCommand = new Command('create')
       return;
     }
 
-    // Demander les modules ou utiliser l'option
-    // "none" = aucun module (permet de skip le prompt interactif)
-    const selectedModules = options.modules !== undefined
-      ? options.modules.split(',').map(m => m.trim()).filter(m => m && m !== 'none')
-      : await promptService.askModules(frameworkId);
+    // Si pas encore de preset, proposer le choix interactif (après le framework)
+    if (!activePreset && !isNonInteractive && !options.modules) {
+      const chosenPresetId = await promptService.askPreset(frameworkId);
+      if (chosenPresetId) {
+        activePreset = presets[chosenPresetId];
+        if (!options.json) {
+          console.log(`\n📋 Preset "${activePreset.name}" sélectionné`);
+        }
+      }
+    }
+
+    // Modules : preset > --modules flag > prompt interactif
+    // Si preset, on filtre les modules qui existent pour ce framework
+    const frameworkModuleIds = framework.modules.map(m => m.id);
+    let selectedModules: string[];
+    if (activePreset) {
+      selectedModules = activePreset.modules.filter(m => frameworkModuleIds.includes(m));
+    } else if (options.modules !== undefined) {
+      selectedModules = options.modules.split(',').map(m => m.trim()).filter(m => m && m !== 'none');
+    } else {
+      selectedModules = await promptService.askModules(frameworkId);
+    }
 
     // Résoudre les dépendances
     const modules = dependencyService.resolveDependencies(frameworkId, selectedModules);
@@ -83,10 +124,36 @@ export const createCommand = new Command('create')
       console.log(dependencyService.getDependencyMessage(frameworkId, addedModules));
     }
 
-    // Poser les questions spécifiques à chaque module (skip en mode non-interactif)
-    const moduleAnswers: ModuleAnswers = isNonInteractive
-      ? {}
-      : await promptService.askModuleQuestions(frameworkId, modules);
+    // Detect or select package manager
+    const packageManager: PackageManager = (options.pm as PackageManager) || 'npm';
+
+    // Poser les questions spécifiques à chaque module
+    // Avec un preset : on utilise les réponses du preset + defaults, on ne pose que si ni l'un ni l'autre
+    let moduleAnswers: ModuleAnswers;
+    if (isNonInteractive) {
+      moduleAnswers = activePreset?.answers || {};
+    } else {
+      moduleAnswers = await promptService.askModuleQuestions(
+        frameworkId,
+        modules,
+        [],
+        activePreset?.answers
+      );
+    }
+
+    // Dry run mode
+    if (options.dryRun) {
+      console.log('\n  Dry run — the following would be created:\n');
+      console.log(`  Project:    ${projectName}`);
+      console.log(`  Framework:  ${framework.name}`);
+      console.log(`  Package manager: ${packageManager}`);
+      console.log(`  Modules:    ${modules.length > 0 ? modules.join(', ') : 'none'}`);
+      if (addedModules.length > 0) {
+        console.log(`  Auto-added: ${addedModules.join(', ')}`);
+      }
+      console.log('');
+      return;
+    }
 
     // Si --zip, créer dans un dossier temporaire
     const baseDir = options.zip ? os.tmpdir() : process.cwd();
@@ -109,6 +176,10 @@ export const createCommand = new Command('create')
       // Copier .env.example vers .env
       await templateService.copyEnvFile(projectPath);
 
+      // Create manifest
+      debug('Writing manifest...');
+      manifestService.create(projectPath, frameworkId, modules, moduleAnswers, packageManager);
+
       spinner?.succeed('Projet créé');
 
       // Déterminer si on installe les dépendances
@@ -116,11 +187,16 @@ export const createCommand = new Command('create')
         ? options.install !== false
         : await promptService.askInstallDependencies();
 
+      const installCmd = manifestService.getInstallCommand(packageManager);
+      const installCmdIgnoreScripts = packageManager === 'npm'
+        ? 'npm install --ignore-scripts'
+        : installCmd; // pnpm/yarn/bun don't need ignore-scripts for initial
+
       if (shouldInstall) {
         // Installer les dépendances de base SANS exécuter les scripts (nuxt prepare)
         const installSpinner = options.json ? null : ora('Installation des dépendances de base...').start();
         try {
-          setupService.installDependencies(projectPath, true);
+          setupService.installDependencies(projectPath, true, packageManager);
           installSpinner?.succeed('Dépendances de base installées');
         } catch (error) {
           installSpinner?.fail('Erreur installation');
@@ -141,7 +217,7 @@ export const createCommand = new Command('create')
 
             if (installService.hasInstallScript(framework.id, moduleId)) {
               if (!options.json) console.log(`\n▸ ${moduleName}`);
-              const result = installService.executeInstallScript(framework.id, moduleId, projectPath);
+              const result = installService.executeInstallScript(framework.id, moduleId, projectPath, packageManager);
 
               if (!result.success) {
                 if (!options.json) console.error(`  ❌ Erreur: ${result.error}`);
@@ -155,7 +231,7 @@ export const createCommand = new Command('create')
         // Exécuter nuxt prepare (postinstall)
         const prepareSpinner = options.json ? null : ora('Préparation du projet...').start();
         try {
-          setupService.runPrepare(projectPath);
+          setupService.runPrepare(projectPath, packageManager);
           prepareSpinner?.succeed('Projet préparé');
         } catch (error) {
           prepareSpinner?.fail('Erreur préparation');
@@ -206,7 +282,8 @@ export const createCommand = new Command('create')
           zipPath,
           framework: frameworkId,
           modules,
-          addedModules
+          addedModules,
+          packageManager
         }));
         return;
       }
@@ -235,10 +312,11 @@ export const createCommand = new Command('create')
       }
 
       // Afficher les prochaines étapes
+      const runCmd = manifestService.getRunCommand(packageManager);
       console.log('✨ Projet prêt !');
       console.log('');
       console.log('  cd ' + projectName);
-      console.log('  npm run dev');
+      console.log(`  ${runCmd} dev`);
       console.log('');
     } catch (error) {
       spinner?.fail('Erreur lors de la création du projet');

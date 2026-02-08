@@ -7,34 +7,53 @@ import { dependencyService } from '../services/dependency.service';
 import { promptService } from '../services/prompt.service';
 import { detectService } from '../services/detect.service';
 import { installService } from '../services/install.service';
+import { manifestService } from '../services/manifest.service';
+import { debug } from '../utils/debug';
 
 export const addCommand = new Command('add')
   .description('Add a module to an existing project')
   .argument('[module]', 'Module to add (optional)')
-  .action(async (moduleName?: string) => {
+  .option('--dry-run', 'Preview what would be added without making changes')
+  .option('--json', 'Output as JSON')
+  .action(async (moduleName?: string, options?: { dryRun?: boolean; json?: boolean }) => {
     const projectPath = process.cwd();
+    const opts = options || {};
 
     // Détecter le framework du projet
-    const spinner = ora('Detecting project framework...').start();
+    const spinner = opts.json ? null : ora('Detecting project framework...').start();
     const detection = detectService.detectFramework(projectPath);
 
     if (!detection) {
-      spinner.fail('Could not detect project framework');
-      console.log('');
-      console.log('Make sure you are in a Nuxt or Next.js project directory.');
-      console.log('Looking for: nuxt.config.ts, next.config.ts, or next.config.js');
+      spinner?.fail('Could not detect project framework');
+      if (!opts.json) {
+        console.log('');
+        console.log('Make sure you are in a Nuxt or Next.js project directory.');
+        console.log('Looking for: nuxt.config.ts, next.config.ts, or next.config.js');
+      } else {
+        console.log(JSON.stringify({ success: false, error: 'No framework detected' }));
+      }
       return;
     }
 
-    spinner.succeed(`Detected ${detection.framework.name} project`);
+    spinner?.succeed(`Detected ${detection.framework.name} project`);
 
     const framework = detection.framework;
     const frameworkId = framework.id;
 
-    // Détecter les modules déjà installés
-    const installedModules = detectService.detectInstalledModules(projectPath, frameworkId);
+    // Detect package manager
+    const pm = manifestService.exists(projectPath)
+      ? manifestService.getPackageManager(projectPath)
+      : manifestService.detectPackageManager(projectPath);
 
-    if (installedModules.length > 0) {
+    debug('Package manager:', pm);
+
+    // Détecter les modules déjà installés
+    const manifest = manifestService.read(projectPath);
+    const installedModules = manifest
+      ? manifest.modules.map(m => m.id)
+      : detectService.detectInstalledModules(projectPath, frameworkId);
+
+    if (installedModules.length > 0 && !opts.json) {
       console.log('');
       console.log('📦 Installed modules:', installedModules.join(', '));
     }
@@ -43,8 +62,12 @@ export const addCommand = new Command('add')
     const availableModules = framework.modules.filter(m => !installedModules.includes(m.id));
 
     if (availableModules.length === 0) {
-      console.log('');
-      console.log('✨ All modules are already installed!');
+      if (opts.json) {
+        console.log(JSON.stringify({ success: true, message: 'All modules already installed' }));
+      } else {
+        console.log('');
+        console.log('✨ All modules are already installed!');
+      }
       return;
     }
 
@@ -54,16 +77,24 @@ export const addCommand = new Command('add')
       // Vérifier si le module existe
       const moduleExists = framework.modules.some(m => m.id === moduleName);
       if (!moduleExists) {
-        console.error(`Module "${moduleName}" not found for ${framework.name}`);
-        console.log('');
-        console.log('Available modules:');
-        availableModules.forEach(m => console.log(`  - ${m.id}: ${m.name}`));
+        if (opts.json) {
+          console.log(JSON.stringify({ success: false, error: `Module "${moduleName}" not found` }));
+        } else {
+          console.error(`Module "${moduleName}" not found for ${framework.name}`);
+          console.log('');
+          console.log('Available modules:');
+          availableModules.forEach(m => console.log(`  - ${m.id}: ${m.name}`));
+        }
         return;
       }
 
       // Vérifier si le module est déjà installé
       if (installedModules.includes(moduleName)) {
-        console.log(`Module "${moduleName}" is already installed.`);
+        if (opts.json) {
+          console.log(JSON.stringify({ success: false, error: `Module "${moduleName}" already installed` }));
+        } else {
+          console.log(`Module "${moduleName}" is already installed.`);
+        }
         return;
       }
 
@@ -91,18 +122,43 @@ export const addCommand = new Command('add')
     const modulesToInstall = modules.filter(m => !installedModules.includes(m));
 
     if (modulesToInstall.length === 0) {
-      console.log('All selected modules are already installed.');
+      if (opts.json) {
+        console.log(JSON.stringify({ success: true, message: 'All selected modules already installed' }));
+      } else {
+        console.log('All selected modules are already installed.');
+      }
       return;
     }
 
     // Informer l'utilisateur des modules ajoutés automatiquement
-    if (addedModules.length > 0) {
+    if (addedModules.length > 0 && !opts.json) {
       const newDeps = addedModules.filter(m => !installedModules.includes(m));
       if (newDeps.length > 0) {
         console.log('');
         console.log('📦 Dependencies added automatically:');
         console.log(dependencyService.getDependencyMessage(frameworkId, newDeps));
       }
+    }
+
+    // Dry run mode
+    if (opts.dryRun) {
+      if (opts.json) {
+        console.log(JSON.stringify({
+          success: true,
+          dryRun: true,
+          modules: modulesToInstall,
+          autoAdded: addedModules.filter(m => !installedModules.includes(m)),
+        }));
+      } else {
+        console.log('\n  Dry run — the following modules would be added:\n');
+        for (const moduleId of modulesToInstall) {
+          const mod = moduleRegistry.get(frameworkId, moduleId);
+          const isAuto = addedModules.includes(moduleId);
+          console.log(`  + ${mod?.name || moduleId}${isAuto ? ' (auto-dependency)' : ''}`);
+        }
+        console.log('');
+      }
+      return;
     }
 
     console.log('');
@@ -112,17 +168,30 @@ export const addCommand = new Command('add')
       const moduleDef = moduleRegistry.get(frameworkId, moduleId);
       const modName = moduleDef?.name || moduleId;
 
-      console.log(`\n📦 Installing ${modName}...\n`);
+      if (!opts.json) console.log(`\n📦 Installing ${modName}...\n`);
 
       if (installService.hasInstallScript(frameworkId, moduleId)) {
-        const result = installService.executeInstallScript(frameworkId, moduleId, projectPath);
+        const result = installService.executeInstallScript(frameworkId, moduleId, projectPath, pm);
 
         if (!result.success) {
-          console.error(`❌ Failed to install ${modName}: ${result.error}`);
+          if (opts.json) {
+            console.log(JSON.stringify({ success: false, error: `Failed to install ${modName}` }));
+          } else {
+            console.error(`❌ Failed to install ${modName}: ${result.error}`);
+          }
         }
       } else {
-        console.log(`⚠️  No install script for ${modName}, skipping...`);
+        if (!opts.json) console.log(`⚠️  No install script for ${modName}, skipping...`);
       }
+    }
+
+    // Update manifest
+    manifestService.addModules(projectPath, modulesToInstall);
+    debug('Manifest updated with modules:', modulesToInstall);
+
+    if (opts.json) {
+      console.log(JSON.stringify({ success: true, installed: modulesToInstall }));
+      return;
     }
 
     // Afficher les instructions des modules

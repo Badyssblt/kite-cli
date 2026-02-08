@@ -1,104 +1,153 @@
 <script setup lang="ts">
-import { ChevronRight, Home, Settings, Users, FileText, BarChart3, Mail, Folder } from "lucide-vue-next"
+import { ChevronRight, Home, Folder, Plus, LogOut, User, ChevronsUpDown, Sparkles } from 'lucide-vue-next'
 import {
   Collapsible,
   CollapsibleContent,
   CollapsibleTrigger,
-} from "@/components/ui/collapsible"
-import { Button } from "@/components/ui/button"
+} from '@/components/ui/collapsible'
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuSeparator,
+  DropdownMenuTrigger,
+} from '@/components/ui/dropdown-menu'
+import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar'
+import { Button } from '@/components/ui/button'
+import { authClient } from '~~/lib/auth-client'
 
+const { data: session } = await useFetch('/api/session')
 const { getProjects } = useProjects()
-const { data: projects, pending, error } = await getProjects()
+const { data: projects, pending } = await getProjects()
+
+const router = useRouter()
+const route = useRoute()
+
+const user = computed(() => (session.value as any)?.user)
+
+const userInitials = computed(() => {
+  const name = user.value?.name || user.value?.email || ''
+  return name.slice(0, 2).toUpperCase()
+})
 
 const projectItems = computed(() => {
-  const items = [{ title: "Créer un projet", url: "/dashboard/project/create" }]
-
-  if (!projects.value?.length) {
-    return items
-  }
-
-  return [
-    ...items,
-    ...projects.value.map((project) => ({
-      title: project.name,
-    })),
-  ]
+  if (!projects.value?.length) return []
+  return projects.value.map((project: any) => ({
+    title: project.name,
+    id: project.id,
+  }))
 })
 
 const hasProjects = computed(() => (projects.value?.length ?? 0) > 0)
 
-const navigation = computed(() => [
-  {
-    id: "dashboard",
-    title: "Dashboard",
-    icon: Home,
-    url: "/dashboard",
-  },
-  {
-    id: "projects",
-    title: "Projets",
-    icon: Folder,
-    items: projectItems.value,
-  },
-])
+function isActive(path: string) {
+  return route.path === path
+}
+
+async function handleSignOut() {
+  await authClient.signOut()
+  router.push('/login')
+}
 </script>
 
 <template>
   <aside class="w-64 border-r bg-sidebar text-sidebar-foreground flex flex-col">
+    <!-- Header -->
     <div class="p-4 border-b">
-      <h2 class="text-lg font-semibold">Kite Boilerplate</h2>
+      <NuxtLink to="/dashboard" class="flex items-center gap-3">
+        <div class="flex size-8 items-center justify-center rounded-lg bg-primary text-primary-foreground">
+          <Sparkles class="size-4" />
+        </div>
+        <div class="flex flex-col leading-none">
+          <span class="font-semibold">Kite</span>
+          <span class="text-xs text-muted-foreground">Boilerplate</span>
+        </div>
+      </NuxtLink>
     </div>
 
-    <nav class="flex-1 p-2 space-y-1">
-      <template v-for="item in navigation" :key="item.title">
-        <!-- Item avec sous-menu (collapsible) -->
-        <Collapsible v-if="item.items" default-open class="group/collapsible">
-          <CollapsibleTrigger as-child>
-            <Button variant="ghost" class="w-full justify-start gap-2">
-              <component :is="item.icon" class="size-4" />
-              <span>{{ item.title }}</span>
-              <ChevronRight class="ml-auto size-4 transition-transform duration-200 group-data-[state=open]/collapsible:rotate-90" />
-            </Button>
-          </CollapsibleTrigger>
-          <CollapsibleContent class="ml-4 mt-1 space-y-1 border-l pl-2">
-            <template v-for="subItem in item.items" :key="subItem.title">
-              <NuxtLink
-                v-if="subItem.url"
-                :to="subItem.url"
-                class="block rounded-md px-3 py-2 text-sm hover:bg-sidebar-accent hover:text-sidebar-accent-foreground"
-              >
-                {{ subItem.title }}
-              </NuxtLink>
-              <div
-                v-else
-                class="block rounded-md px-3 py-2 text-sm text-muted-foreground"
-              >
-                {{ subItem.title }}
-              </div>
-            </template>
-            <div
-              v-if="item.id === 'projects'"
-              class="px-3 py-2 text-xs text-muted-foreground"
-            >
-              <span v-if="pending">Chargement...</span>
-              <span v-else-if="error">Impossible de charger les projets</span>
-              <span v-else-if="!hasProjects">Aucun projet pour le moment</span>
-            </div>
-          </CollapsibleContent>
-        </Collapsible>
+    <!-- Navigation -->
+    <nav class="flex-1 p-2 space-y-1 overflow-y-auto">
+      <!-- Dashboard -->
+      <Button
+        variant="ghost"
+        as-child
+        class="w-full justify-start gap-2"
+        :class="isActive('/dashboard') ? 'bg-sidebar-accent text-sidebar-accent-foreground' : ''"
+      >
+        <NuxtLink to="/dashboard">
+          <Home class="size-4" />
+          <span>Dashboard</span>
+        </NuxtLink>
+      </Button>
 
-        <!-- Item simple -->
-        <Button v-else variant="ghost" as-child class="w-full justify-start gap-2">
-          <NuxtLink :to="item.url">
-            <component :is="item.icon" class="size-4" />
-            <span>{{ item.title }}</span>
-          </NuxtLink>
-        </Button>
-      </template>
+      <!-- Nouveau projet -->
+      <Button
+        variant="ghost"
+        as-child
+        class="w-full justify-start gap-2"
+        :class="isActive('/dashboard/project/create') ? 'bg-sidebar-accent text-sidebar-accent-foreground' : ''"
+      >
+        <NuxtLink to="/dashboard/project/create">
+          <Plus class="size-4" />
+          <span>Nouveau projet</span>
+        </NuxtLink>
+      </Button>
+
+      <!-- Projets -->
+      <Collapsible v-if="hasProjects" default-open class="group/collapsible">
+        <CollapsibleTrigger as-child>
+          <Button variant="ghost" class="w-full justify-start gap-2">
+            <Folder class="size-4" />
+            <span>Mes projets</span>
+            <ChevronRight class="ml-auto size-4 transition-transform duration-200 group-data-[state=open]/collapsible:rotate-90" />
+          </Button>
+        </CollapsibleTrigger>
+        <CollapsibleContent class="ml-4 mt-1 space-y-0.5 border-l pl-2">
+          <div
+            v-for="project in projectItems"
+            :key="project.id"
+            class="block rounded-md px-3 py-1.5 text-sm text-muted-foreground truncate"
+          >
+            {{ project.title }}
+          </div>
+        </CollapsibleContent>
+      </Collapsible>
+
+      <div v-else-if="!pending" class="px-3 py-2 text-xs text-muted-foreground">
+        Aucun projet
+      </div>
     </nav>
 
-    <div class="p-4 border-t">
-      <p class="text-xs text-muted-foreground">v1.0.0</p>
+    <!-- User footer -->
+    <div class="border-t p-2">
+      <DropdownMenu>
+        <DropdownMenuTrigger as-child>
+          <button class="flex w-full items-center gap-3 rounded-md px-2 py-2 text-left hover:bg-sidebar-accent transition-colors">
+            <Avatar class="size-8">
+              <AvatarImage v-if="user?.image" :src="user.image" :alt="user?.name || ''" />
+              <AvatarFallback class="text-xs">{{ userInitials }}</AvatarFallback>
+            </Avatar>
+            <div class="flex-1 min-w-0">
+              <p class="text-sm font-medium truncate">{{ user?.name || 'Utilisateur' }}</p>
+              <p class="text-xs text-muted-foreground truncate">{{ user?.email }}</p>
+            </div>
+            <ChevronsUpDown class="size-4 text-muted-foreground shrink-0" />
+          </button>
+        </DropdownMenuTrigger>
+        <DropdownMenuContent class="w-56" side="top" align="start" :side-offset="8">
+          <DropdownMenuItem as-child>
+            <NuxtLink to="/dashboard/profile" class="cursor-pointer">
+              <User class="size-4 mr-2" />
+              Profil
+            </NuxtLink>
+          </DropdownMenuItem>
+          <DropdownMenuSeparator />
+          <DropdownMenuItem class="cursor-pointer" @click="handleSignOut">
+            <LogOut class="size-4 mr-2" />
+            Se déconnecter
+          </DropdownMenuItem>
+        </DropdownMenuContent>
+      </DropdownMenu>
     </div>
   </aside>
 </template>

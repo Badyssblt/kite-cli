@@ -26,6 +26,15 @@ export interface Framework {
   modules: Module[];
 }
 
+export interface Preset {
+  id: string;
+  name: string;
+  description: string | null;
+  image: string | null;
+  frameworks: string[];
+  modules: string[];
+}
+
 export const MODULE_COLORS: Record<string, { text: string; bg: string }> = {
   prisma: { text: 'text-emerald-400', bg: 'bg-emerald-500' },
   tailwind: { text: 'text-cyan-400', bg: 'bg-cyan-500' },

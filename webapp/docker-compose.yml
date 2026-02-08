@@ -43,6 +43,14 @@ services:
       - redis_data:/data
     restart: unless-stopped
 
+  adminer:
+    image: adminer
+    ports:
+      - 8080:8080
+    depends_on:
+      - db
+    restart: unless-stopped
+
 volumes:
   mariadb_data:
   redis_data:

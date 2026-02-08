@@ -58,7 +58,10 @@ export const ModelName = {
   User: 'User',
   Session: 'Session',
   Account: 'Account',
-  Verification: 'Verification'
+  Verification: 'Verification',
+  Preset: 'Preset',
+  PresetFramework: 'PresetFramework',
+  PresetModule: 'PresetModule'
 } as const
 
 export type ModelName = (typeof ModelName)[keyof typeof ModelName]
@@ -175,6 +178,34 @@ export const VerificationScalarFieldEnum = {
 export type VerificationScalarFieldEnum = (typeof VerificationScalarFieldEnum)[keyof typeof VerificationScalarFieldEnum]
 
 
+export const PresetScalarFieldEnum = {
+  id: 'id',
+  name: 'name',
+  description: 'description',
+  image: 'image',
+  createdAt: 'createdAt',
+  updatedAt: 'updatedAt'
+} as const
+
+export type PresetScalarFieldEnum = (typeof PresetScalarFieldEnum)[keyof typeof PresetScalarFieldEnum]
+
+
+export const PresetFrameworkScalarFieldEnum = {
+  presetId: 'presetId',
+  frameworkId: 'frameworkId'
+} as const
+
+export type PresetFrameworkScalarFieldEnum = (typeof PresetFrameworkScalarFieldEnum)[keyof typeof PresetFrameworkScalarFieldEnum]
+
+
+export const PresetModuleScalarFieldEnum = {
+  presetId: 'presetId',
+  moduleId: 'moduleId'
+} as const
+
+export type PresetModuleScalarFieldEnum = (typeof PresetModuleScalarFieldEnum)[keyof typeof PresetModuleScalarFieldEnum]
+
+
 export const SortOrder = {
   asc: 'asc',
   desc: 'desc'
@@ -272,4 +303,30 @@ export const VerificationOrderByRelevanceFieldEnum = {
 } as const
 
 export type VerificationOrderByRelevanceFieldEnum = (typeof VerificationOrderByRelevanceFieldEnum)[keyof typeof VerificationOrderByRelevanceFieldEnum]
+
+
+export const PresetOrderByRelevanceFieldEnum = {
+  id: 'id',
+  name: 'name',
+  description: 'description',
+  image: 'image'
+} as const
+
+export type PresetOrderByRelevanceFieldEnum = (typeof PresetOrderByRelevanceFieldEnum)[keyof typeof PresetOrderByRelevanceFieldEnum]
+
+
+export const PresetFrameworkOrderByRelevanceFieldEnum = {
+  presetId: 'presetId',
+  frameworkId: 'frameworkId'
+} as const
+
+export type PresetFrameworkOrderByRelevanceFieldEnum = (typeof PresetFrameworkOrderByRelevanceFieldEnum)[keyof typeof PresetFrameworkOrderByRelevanceFieldEnum]
+
+
+export const PresetModuleOrderByRelevanceFieldEnum = {
+  presetId: 'presetId',
+  moduleId: 'moduleId'
+} as const
+
+export type PresetModuleOrderByRelevanceFieldEnum = (typeof PresetModuleOrderByRelevanceFieldEnum)[keyof typeof PresetModuleOrderByRelevanceFieldEnum]
 

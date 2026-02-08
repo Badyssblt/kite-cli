@@ -4,6 +4,7 @@ import fs from 'fs-extra';
 import ora from 'ora';
 
 import { frameworkRegistry } from '../core/framework-registry';
+import { presets } from '../presets';
 
 interface TreeNode {
   name: string;
@@ -112,10 +113,12 @@ export const syncCommand = new Command('sync')
       bases: Array<{ framework: string; tree: TreeNode }>;
       modules: Array<{ framework: string; moduleId: string; tree: TreeNode }>;
       files: Array<{ framework: string; path: string; content: string; module?: string }>;
+      presets: Array<{ id: string; name: string; description: string; frameworks: string[]; modules: string[] }>;
     } = {
       bases: [],
       modules: [],
       files: [],
+      presets: [],
     };
 
     for (const framework of frameworks) {
@@ -169,6 +172,18 @@ export const syncCommand = new Command('sync')
       }
     }
 
+    // Presets
+    spinner.text = 'Collecte des presets...';
+    for (const [id, preset] of Object.entries(presets)) {
+      syncData.presets.push({
+        id,
+        name: preset.name,
+        description: preset.description,
+        frameworks: Array.isArray(preset.framework) ? preset.framework : [preset.framework],
+        modules: preset.modules,
+      });
+    }
+
     spinner.text = 'Envoi des données au serveur...';
 
     try {
@@ -185,7 +200,7 @@ export const syncCommand = new Command('sync')
 
       if (result.success) {
         spinner.succeed(
-          `Synchronisation terminée: ${syncData.bases.length} bases, ${syncData.modules.length} modules, ${syncData.files.length} fichiers`
+          `Synchronisation terminée: ${syncData.bases.length} bases, ${syncData.modules.length} modules, ${syncData.files.length} fichiers, ${syncData.presets.length} presets`
         );
       } else {
         spinner.fail(`Erreur: ${result.error}`);

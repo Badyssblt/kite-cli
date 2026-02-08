@@ -57,3 +57,18 @@ export type Account = Prisma.AccountModel
  * 
  */
 export type Verification = Prisma.VerificationModel
+/**
+ * Model Preset
+ * 
+ */
+export type Preset = Prisma.PresetModel
+/**
+ * Model PresetFramework
+ * 
+ */
+export type PresetFramework = Prisma.PresetFrameworkModel
+/**
+ * Model PresetModule
+ * 
+ */
+export type PresetModule = Prisma.PresetModuleModel

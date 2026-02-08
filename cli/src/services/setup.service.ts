@@ -2,7 +2,9 @@
 
 import { execSync } from 'child_process';
 import type { SetupScript } from '../types';
+import type { PackageManager } from './manifest.service';
 import { dependencyService } from './dependency.service';
+import { debug } from '../utils/debug';
 
 export class SetupService {
   // Exécuter les scripts setup dans l'ordre des dépendances
@@ -25,6 +27,7 @@ export class SetupService {
     for (const script of sortedScripts) {
       onProgress?.(script.name);
       try {
+        debug('Executing setup script:', script.path);
         execSync(`bash "${script.path}"`, {
           cwd: projectPath,
           stdio: 'pipe'
@@ -38,9 +41,25 @@ export class SetupService {
     return failedModules;
   }
 
-  // Installer les dépendances npm
-  installDependencies(projectPath: string, ignoreScripts = false): void {
-    const cmd = ignoreScripts ? 'npm install --ignore-scripts' : 'npm install';
+  // Installer les dépendances
+  installDependencies(projectPath: string, ignoreScripts = false, pm: PackageManager = 'npm'): void {
+    let cmd: string;
+
+    switch (pm) {
+      case 'pnpm':
+        cmd = ignoreScripts ? 'pnpm install --ignore-scripts' : 'pnpm install';
+        break;
+      case 'yarn':
+        cmd = ignoreScripts ? 'yarn install --ignore-scripts' : 'yarn install';
+        break;
+      case 'bun':
+        cmd = 'bun install';
+        break;
+      default:
+        cmd = ignoreScripts ? 'npm install --ignore-scripts' : 'npm install';
+    }
+
+    debug('Running:', cmd);
     execSync(cmd, {
       cwd: projectPath,
       stdio: 'pipe'
@@ -48,8 +67,16 @@ export class SetupService {
   }
 
   // Exécuter nuxt prepare (ou équivalent)
-  runPrepare(projectPath: string): void {
-    execSync('npm run postinstall', {
+  runPrepare(projectPath: string, pm: PackageManager = 'npm'): void {
+    const commands: Record<PackageManager, string> = {
+      npm: 'npm run postinstall',
+      pnpm: 'pnpm postinstall',
+      yarn: 'yarn postinstall',
+      bun: 'bun run postinstall',
+    };
+
+    debug('Running prepare:', commands[pm]);
+    execSync(commands[pm], {
       cwd: projectPath,
       stdio: 'pipe'
     });
