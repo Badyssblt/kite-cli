@@ -16,16 +16,75 @@ model Framework {
 }
 
 model Module {
-  id          String    @id
+  id          String    @id @default(cuid())
   name        String
   description String
+  category    String    @default("other")
+  prompts     Json?
 
   framework   Framework @relation(fields: [frameworkId], references: [id])
   frameworkId String
 
+  // Community module fields
+  author      User?     @relation(fields: [authorId], references: [id])
+  authorId    String?
+  isCommunity Boolean   @default(false)
+
+  status       ModuleStatus?
+  files        ModuleFile[]
+  dependencies ModuleDependency[]
+  envVars      ModuleEnvVar[]
+
   projects    ProjectModule[]
   presets     PresetModule[]
 }
+
+model ModuleStatus {
+  id         String   @id @default(cuid())
+  module     Module   @relation(fields: [moduleId], references: [id], onDelete: Cascade)
+  moduleId   String   @unique
+  status     ModuleStatusEnum
+  reason     String?
+  createdAt  DateTime @default(now())
+  updatedAt  DateTime @updatedAt
+}
+
+model ModuleFile {
+  id         String   @id @default(cuid())
+  module     Module   @relation(fields: [moduleId], references: [id], onDelete: Cascade)
+  moduleId   String
+  path       String
+  content    String   @db.LongText
+
+  @@unique([moduleId, path])
+}
+
+model ModuleDependency {
+  id         String   @id @default(cuid())
+  module     Module   @relation(fields: [moduleId], references: [id], onDelete: Cascade)
+  moduleId   String
+  name       String
+  isDev      Boolean  @default(false)
+}
+
+model ModuleEnvVar {
+  id           String   @id @default(cuid())
+  module       Module   @relation(fields: [moduleId], references: [id], onDelete: Cascade)
+  moduleId     String
+  key          String
+  defaultValue String   @default("")
+  description  String?
+}
+
+enum ModuleStatusEnum {
+  ACTIVE
+  INACTIVE
+  WAITING_FOR_APPROVAL
+  REFUSED
+  DEPRECATED
+}
+
+
 
 model Project {
   id          String    @id @default(cuid())
@@ -51,6 +110,11 @@ model ProjectModule {
   @@id([projectId, moduleId])
 }
 
+enum UserRole {
+  USER
+  ADMIN
+}
+
 model User {
   id            String    @id @default(cuid())
   name          String?
@@ -62,6 +126,8 @@ model User {
   sessions      Session[]
   accounts      Account[]
   projects      Project[]
+  modules       Module[]
+  role          UserRole  @default(USER)
 }
 
 model Session {
@@ -107,6 +173,7 @@ model Preset {
   name        String
   description String?
   image       String?
+  answers     Json?
   frameworks  PresetFramework[]
   modules     PresetModule[]
   createdAt   DateTime  @default(now())

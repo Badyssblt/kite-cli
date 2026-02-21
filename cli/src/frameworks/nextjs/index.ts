@@ -15,6 +15,7 @@ import { supabaseModule } from './modules/supabase';
 import { i18nModule } from './modules/i18n';
 import { vitestModule } from './modules/vitest';
 import { zustandModule } from './modules/zustand';
+import { emailModule } from './modules/email';
 
 export class NextJsFramework extends BaseFramework {
   id = 'nextjs';
@@ -27,6 +28,7 @@ export class NextJsFramework extends BaseFramework {
     prismaModule,
     supabaseModule,
     betterAuthModule,
+    emailModule,
     stripeModule,
     shadcnModule,
     tailwindModule,

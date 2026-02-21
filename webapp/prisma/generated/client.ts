@@ -50,6 +50,26 @@ export type Framework = Prisma.FrameworkModel
  */
 export type Module = Prisma.ModuleModel
 /**
+ * Model ModuleStatus
+ * 
+ */
+export type ModuleStatus = Prisma.ModuleStatusModel
+/**
+ * Model ModuleFile
+ * 
+ */
+export type ModuleFile = Prisma.ModuleFileModel
+/**
+ * Model ModuleDependency
+ * 
+ */
+export type ModuleDependency = Prisma.ModuleDependencyModel
+/**
+ * Model ModuleEnvVar
+ * 
+ */
+export type ModuleEnvVar = Prisma.ModuleEnvVarModel
+/**
  * Model Project
  * 
  */

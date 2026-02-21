@@ -53,6 +53,10 @@ export const AnyNull = runtime.AnyNull
 export const ModelName = {
   Framework: 'Framework',
   Module: 'Module',
+  ModuleStatus: 'ModuleStatus',
+  ModuleFile: 'ModuleFile',
+  ModuleDependency: 'ModuleDependency',
+  ModuleEnvVar: 'ModuleEnvVar',
   Project: 'Project',
   ProjectModule: 'ProjectModule',
   User: 'User',
@@ -93,10 +97,57 @@ export const ModuleScalarFieldEnum = {
   id: 'id',
   name: 'name',
   description: 'description',
-  frameworkId: 'frameworkId'
+  category: 'category',
+  prompts: 'prompts',
+  frameworkId: 'frameworkId',
+  authorId: 'authorId',
+  isCommunity: 'isCommunity'
 } as const
 
 export type ModuleScalarFieldEnum = (typeof ModuleScalarFieldEnum)[keyof typeof ModuleScalarFieldEnum]
+
+
+export const ModuleStatusScalarFieldEnum = {
+  id: 'id',
+  moduleId: 'moduleId',
+  status: 'status',
+  reason: 'reason',
+  createdAt: 'createdAt',
+  updatedAt: 'updatedAt'
+} as const
+
+export type ModuleStatusScalarFieldEnum = (typeof ModuleStatusScalarFieldEnum)[keyof typeof ModuleStatusScalarFieldEnum]
+
+
+export const ModuleFileScalarFieldEnum = {
+  id: 'id',
+  moduleId: 'moduleId',
+  path: 'path',
+  content: 'content'
+} as const
+
+export type ModuleFileScalarFieldEnum = (typeof ModuleFileScalarFieldEnum)[keyof typeof ModuleFileScalarFieldEnum]
+
+
+export const ModuleDependencyScalarFieldEnum = {
+  id: 'id',
+  moduleId: 'moduleId',
+  name: 'name',
+  isDev: 'isDev'
+} as const
+
+export type ModuleDependencyScalarFieldEnum = (typeof ModuleDependencyScalarFieldEnum)[keyof typeof ModuleDependencyScalarFieldEnum]
+
+
+export const ModuleEnvVarScalarFieldEnum = {
+  id: 'id',
+  moduleId: 'moduleId',
+  key: 'key',
+  defaultValue: 'defaultValue',
+  description: 'description'
+} as const
+
+export type ModuleEnvVarScalarFieldEnum = (typeof ModuleEnvVarScalarFieldEnum)[keyof typeof ModuleEnvVarScalarFieldEnum]
 
 
 export const ProjectScalarFieldEnum = {
@@ -127,7 +178,8 @@ export const UserScalarFieldEnum = {
   emailVerified: 'emailVerified',
   image: 'image',
   createdAt: 'createdAt',
-  updatedAt: 'updatedAt'
+  updatedAt: 'updatedAt',
+  role: 'role'
 } as const
 
 export type UserScalarFieldEnum = (typeof UserScalarFieldEnum)[keyof typeof UserScalarFieldEnum]
@@ -183,6 +235,7 @@ export const PresetScalarFieldEnum = {
   name: 'name',
   description: 'description',
   image: 'image',
+  answers: 'answers',
   createdAt: 'createdAt',
   updatedAt: 'updatedAt'
 } as const
@@ -214,6 +267,14 @@ export const SortOrder = {
 export type SortOrder = (typeof SortOrder)[keyof typeof SortOrder]
 
 
+export const NullableJsonNullValueInput = {
+  DbNull: DbNull,
+  JsonNull: JsonNull
+} as const
+
+export type NullableJsonNullValueInput = (typeof NullableJsonNullValueInput)[keyof typeof NullableJsonNullValueInput]
+
+
 export const FrameworkOrderByRelevanceFieldEnum = {
   id: 'id',
   name: 'name',
@@ -223,14 +284,21 @@ export const FrameworkOrderByRelevanceFieldEnum = {
 export type FrameworkOrderByRelevanceFieldEnum = (typeof FrameworkOrderByRelevanceFieldEnum)[keyof typeof FrameworkOrderByRelevanceFieldEnum]
 
 
-export const ModuleOrderByRelevanceFieldEnum = {
-  id: 'id',
-  name: 'name',
-  description: 'description',
-  frameworkId: 'frameworkId'
+export const JsonNullValueFilter = {
+  DbNull: DbNull,
+  JsonNull: JsonNull,
+  AnyNull: AnyNull
 } as const
 
-export type ModuleOrderByRelevanceFieldEnum = (typeof ModuleOrderByRelevanceFieldEnum)[keyof typeof ModuleOrderByRelevanceFieldEnum]
+export type JsonNullValueFilter = (typeof JsonNullValueFilter)[keyof typeof JsonNullValueFilter]
+
+
+export const QueryMode = {
+  default: 'default',
+  insensitive: 'insensitive'
+} as const
+
+export type QueryMode = (typeof QueryMode)[keyof typeof QueryMode]
 
 
 export const NullsOrder = {
@@ -239,6 +307,57 @@ export const NullsOrder = {
 } as const
 
 export type NullsOrder = (typeof NullsOrder)[keyof typeof NullsOrder]
+
+
+export const ModuleOrderByRelevanceFieldEnum = {
+  id: 'id',
+  name: 'name',
+  description: 'description',
+  category: 'category',
+  frameworkId: 'frameworkId',
+  authorId: 'authorId'
+} as const
+
+export type ModuleOrderByRelevanceFieldEnum = (typeof ModuleOrderByRelevanceFieldEnum)[keyof typeof ModuleOrderByRelevanceFieldEnum]
+
+
+export const ModuleStatusOrderByRelevanceFieldEnum = {
+  id: 'id',
+  moduleId: 'moduleId',
+  reason: 'reason'
+} as const
+
+export type ModuleStatusOrderByRelevanceFieldEnum = (typeof ModuleStatusOrderByRelevanceFieldEnum)[keyof typeof ModuleStatusOrderByRelevanceFieldEnum]
+
+
+export const ModuleFileOrderByRelevanceFieldEnum = {
+  id: 'id',
+  moduleId: 'moduleId',
+  path: 'path',
+  content: 'content'
+} as const
+
+export type ModuleFileOrderByRelevanceFieldEnum = (typeof ModuleFileOrderByRelevanceFieldEnum)[keyof typeof ModuleFileOrderByRelevanceFieldEnum]
+
+
+export const ModuleDependencyOrderByRelevanceFieldEnum = {
+  id: 'id',
+  moduleId: 'moduleId',
+  name: 'name'
+} as const
+
+export type ModuleDependencyOrderByRelevanceFieldEnum = (typeof ModuleDependencyOrderByRelevanceFieldEnum)[keyof typeof ModuleDependencyOrderByRelevanceFieldEnum]
+
+
+export const ModuleEnvVarOrderByRelevanceFieldEnum = {
+  id: 'id',
+  moduleId: 'moduleId',
+  key: 'key',
+  defaultValue: 'defaultValue',
+  description: 'description'
+} as const
+
+export type ModuleEnvVarOrderByRelevanceFieldEnum = (typeof ModuleEnvVarOrderByRelevanceFieldEnum)[keyof typeof ModuleEnvVarOrderByRelevanceFieldEnum]
 
 
 export const ProjectOrderByRelevanceFieldEnum = {

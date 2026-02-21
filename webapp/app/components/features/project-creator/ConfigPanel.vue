@@ -1,7 +1,14 @@
 <script setup lang="ts">
-import { Check, Search } from 'lucide-vue-next';
+import { Check, Search, ChevronRight, Settings } from 'lucide-vue-next';
+import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
+import { Badge } from '@/components/ui/badge';
+import {
+  Collapsible,
+  CollapsibleContent,
+  CollapsibleTrigger,
+} from '@/components/ui/collapsible';
 import {
   Select,
   SelectContent,
@@ -9,34 +16,30 @@ import {
   SelectTrigger,
   SelectValue,
 } from '@/components/ui/select';
-import type { Framework, Module, Preset } from './types';
-import { MODULE_COLORS } from './types';
+import type { Framework, Module } from './types';
+import { MODULE_COLORS, MODULE_CATEGORIES } from './types';
 
 const props = defineProps<{
   frameworks: Framework[];
   selectedFrameworkId: string;
   selectedModules: string[];
   projectName: string;
-  presets: Preset[];
-  activePresetId: string | null;
+  packageManager: string;
 }>();
 
 const emit = defineEmits<{
   'update:projectName': [value: string];
-  'update:selectedFrameworkId': [value: string];
   'update:selectedModules': [value: string[]];
-  'update:activePresetId': [value: string | null];
+  'update:packageManager': [value: string];
+  'openConfig': [];
 }>();
 
-const activePreset = computed(() => {
-  if (!props.activePresetId) return null;
-  return props.presets.find((p) => p.id === props.activePresetId) || null;
-});
-
-const availableFrameworks = computed(() => {
-  if (!activePreset.value) return props.frameworks;
-  return props.frameworks.filter((fw) => activePreset.value!.frameworks.includes(fw.id));
-});
+const PACKAGE_MANAGERS = [
+  { id: 'npm', name: 'npm' },
+  { id: 'pnpm', name: 'pnpm' },
+  { id: 'yarn', name: 'yarn' },
+  { id: 'bun', name: 'bun' },
+];
 
 const selectedFramework = computed(() => {
   return props.frameworks.find(fw => fw.id === props.selectedFrameworkId);
@@ -48,6 +51,80 @@ const modules = computed(() => {
   });
 });
 
+// Module search & categories
+const moduleSearch = ref('');
+const openCategories = ref<Set<string>>(new Set());
+
+const filteredModules = computed(() => {
+  const query = moduleSearch.value.toLowerCase().trim();
+  if (!query) return modules.value;
+  return modules.value.filter(
+    (m) =>
+      m.name.toLowerCase().includes(query) ||
+      m.description?.toLowerCase().includes(query)
+  );
+});
+
+const modulesByCategory = computed(() => {
+  const grouped: Record<string, Module[]> = {};
+  for (const mod of filteredModules.value) {
+    const cat = mod.category || 'other';
+    if (!grouped[cat]) grouped[cat] = [];
+    grouped[cat].push(mod);
+  }
+  return grouped;
+});
+
+const sortedCategories = computed(() => {
+  return Object.keys(modulesByCategory.value).sort((a, b) => {
+    const orderA = MODULE_CATEGORIES[a]?.order ?? 99;
+    const orderB = MODULE_CATEGORIES[b]?.order ?? 99;
+    return orderA - orderB;
+  });
+});
+
+function selectedCountForCategory(cat: string): number {
+  return (modulesByCategory.value[cat] || []).filter((m) =>
+    props.selectedModules.includes(m.id)
+  ).length;
+}
+
+const totalSelectedCount = computed(() => props.selectedModules.length);
+
+const configurableModulesCount = computed(() => {
+  return modules.value.filter(
+    m => props.selectedModules.includes(m.id) && m.prompts && m.prompts.length > 0
+  ).length;
+});
+
+// Open all categories when framework changes
+watch(
+  () => props.selectedFrameworkId,
+  () => {
+    openCategories.value = new Set(sortedCategories.value);
+  }
+);
+
+// Open categories of selected modules when selection changes (e.g. via preset)
+watch(
+  () => props.selectedModules,
+  (newVal) => {
+    for (const mod of modules.value) {
+      if (newVal.includes(mod.id)) {
+        openCategories.value.add(mod.category || 'other');
+      }
+    }
+  }
+);
+
+function toggleCategory(cat: string) {
+  if (openCategories.value.has(cat)) {
+    openCategories.value.delete(cat);
+  } else {
+    openCategories.value.add(cat);
+  }
+}
+
 function toggleModule(moduleId: string) {
   const newModules = props.selectedModules.includes(moduleId)
     ? props.selectedModules.filter(id => id !== moduleId)
@@ -56,39 +133,9 @@ function toggleModule(moduleId: string) {
 }
 
 function getModuleColor(moduleId: string) {
-  return MODULE_COLORS[moduleId] || { text: '', bg: 'bg-muted-foreground' };
-}
-
-const PRESETS_LIMIT = 5;
-const presetSearch = ref('');
-const showAllPresets = ref(false);
-
-const filteredPresets = computed(() => {
-  const query = presetSearch.value.toLowerCase().trim();
-  if (!query) return props.presets;
-  return props.presets.filter(
-    (p) =>
-      p.name.toLowerCase().includes(query) ||
-      p.description?.toLowerCase().includes(query) ||
-      p.modules.some((m) => m.toLowerCase().includes(query))
-  );
-});
-
-const visiblePresets = computed(() => {
-  if (showAllPresets.value || presetSearch.value.trim()) return filteredPresets.value;
-  return filteredPresets.value.slice(0, PRESETS_LIMIT);
-});
-
-const hasMorePresets = computed(() => {
-  return !showAllPresets.value && !presetSearch.value.trim() && filteredPresets.value.length > PRESETS_LIMIT;
-});
-
-function togglePreset(presetId: string) {
-  if (props.activePresetId === presetId) {
-    emit('update:activePresetId', null);
-  } else {
-    emit('update:activePresetId', presetId);
-  }
+  // Support composite ids (e.g. "nuxt-prisma" -> lookup "prisma")
+  const suffix = moduleId.includes('-') ? moduleId.substring(moduleId.indexOf('-') + 1) : moduleId;
+  return MODULE_COLORS[moduleId] || MODULE_COLORS[suffix] || { text: '', bg: 'bg-muted-foreground' };
 }
 </script>
 
@@ -100,91 +147,6 @@ function togglePreset(presetId: string) {
     </div>
 
     <div class="flex-1 overflow-y-auto p-4 space-y-6">
-      <!-- Presets -->
-      <div v-if="presets.length" class="space-y-2">
-        <Label class="text-xs font-medium text-muted-foreground uppercase">
-          Presets
-        </Label>
-
-        <!-- Search -->
-        <div class="relative">
-          <Search class="absolute left-2.5 top-1/2 -translate-y-1/2 size-3.5 text-muted-foreground" />
-          <Input
-            v-model="presetSearch"
-            placeholder="Rechercher un preset..."
-            class="h-8 pl-8 text-xs"
-          />
-        </div>
-
-        <div class="space-y-2">
-          <button
-            v-for="preset in visiblePresets"
-            :key="preset.id"
-            class="w-full rounded-lg border p-3 text-left transition-all"
-            :class="activePresetId === preset.id
-              ? 'border-primary bg-primary/5 ring-1 ring-primary/20'
-              : 'border-border hover:border-muted-foreground/30 hover:bg-muted/50'"
-            @click="togglePreset(preset.id)"
-          >
-            <div class="flex items-start gap-3">
-              <!-- Image or gradient placeholder -->
-              <div
-                class="size-10 rounded-md shrink-0 overflow-hidden"
-                :class="!preset.image ? 'bg-gradient-to-br from-primary/40 to-primary/10' : ''"
-              >
-                <img
-                  v-if="preset.image"
-                  :src="preset.image"
-                  :alt="preset.name"
-                  class="size-full object-cover"
-                />
-              </div>
-              <div class="flex-1 min-w-0">
-                <div class="text-sm font-medium truncate">{{ preset.name }}</div>
-                <p v-if="preset.description" class="text-xs text-muted-foreground line-clamp-2 mt-0.5">
-                  {{ preset.description }}
-                </p>
-              </div>
-            </div>
-            <!-- Module badges -->
-            <div v-if="preset.modules.length" class="flex flex-wrap gap-1 mt-2">
-              <span
-                v-for="modId in preset.modules"
-                :key="modId"
-                class="inline-flex items-center gap-1 px-1.5 py-0.5 rounded text-[10px] font-medium bg-muted"
-              >
-                <span
-                  class="size-1.5 rounded-full shrink-0"
-                  :class="getModuleColor(modId).bg"
-                />
-                {{ modId }}
-              </span>
-            </div>
-          </button>
-
-          <!-- Show more / less -->
-          <button
-            v-if="hasMorePresets"
-            class="w-full text-xs text-muted-foreground hover:text-foreground py-1.5 transition-colors"
-            @click="showAllPresets = true"
-          >
-            Voir plus ({{ filteredPresets.length - PRESETS_LIMIT }} autres)
-          </button>
-          <button
-            v-else-if="showAllPresets && !presetSearch.trim() && filteredPresets.length > PRESETS_LIMIT"
-            class="w-full text-xs text-muted-foreground hover:text-foreground py-1.5 transition-colors"
-            @click="showAllPresets = false"
-          >
-            Voir moins
-          </button>
-
-          <!-- No results -->
-          <p v-if="presetSearch.trim() && !filteredPresets.length" class="text-xs text-muted-foreground text-center py-2">
-            Aucun preset trouvé
-          </p>
-        </div>
-      </div>
-
       <!-- Project Name -->
       <div class="space-y-2">
         <Label for="projectName" class="text-xs font-medium text-muted-foreground uppercase">
@@ -199,21 +161,21 @@ function togglePreset(presetId: string) {
         />
       </div>
 
-      <!-- Framework -->
+      <!-- Package Manager -->
       <div class="space-y-2">
         <Label class="text-xs font-medium text-muted-foreground uppercase">
-          Framework
+          Package Manager
         </Label>
         <Select
-          :model-value="selectedFrameworkId"
-          @update:model-value="emit('update:selectedFrameworkId', $event)"
+          :model-value="packageManager"
+          @update:model-value="emit('update:packageManager', $event)"
         >
           <SelectTrigger class="h-9">
-            <SelectValue placeholder="Choisir un framework" />
+            <SelectValue />
           </SelectTrigger>
           <SelectContent>
-            <SelectItem v-for="fw in availableFrameworks" :key="fw.id" :value="fw.id">
-              {{ fw.name }}
+            <SelectItem v-for="pm in PACKAGE_MANAGERS" :key="pm.id" :value="pm.id">
+              {{ pm.name }}
             </SelectItem>
           </SelectContent>
         </Select>
@@ -221,46 +183,123 @@ function togglePreset(presetId: string) {
 
       <!-- Modules -->
       <div v-if="selectedFrameworkId" class="space-y-3">
-        <Label class="text-xs font-medium text-muted-foreground uppercase">
-          Modules
-        </Label>
-
-        <div class="space-y-1">
-          <button
-            v-for="mod in modules"
-            :key="mod.id"
-            class="w-full flex items-center gap-3 px-3 py-2 rounded-md text-sm text-left transition-colors"
-            :class="selectedModules.includes(mod.id) ? 'bg-primary/10' : 'hover:bg-muted'"
-            @click="toggleModule(mod.id)"
-          >
-            <!-- Checkbox -->
-            <div
-              class="size-4 rounded border-2 flex items-center justify-center transition-colors shrink-0"
-              :class="selectedModules.includes(mod.id)
-                ? 'bg-primary border-primary'
-                : 'border-muted-foreground/30'"
-            >
-              <Check v-if="selectedModules.includes(mod.id)" class="size-3 text-primary-foreground" />
-            </div>
-
-            <!-- Module Info -->
-            <div class="flex-1 min-w-0">
-              <div class="flex items-center gap-2">
-                <span
-                  class="size-2 rounded-full shrink-0"
-                  :class="getModuleColor(mod.id).bg"
-                />
-                <span class="font-medium truncate" :class="selectedModules.includes(mod.id) ? getModuleColor(mod.id).text : ''">
-                  {{ mod.name }}
-                </span>
-              </div>
-              <p v-if="mod.description" class="text-xs text-muted-foreground truncate mt-0.5">
-                {{ mod.description }}
-              </p>
-            </div>
-          </button>
+        <div class="flex items-center justify-between">
+          <Label class="text-xs font-medium text-muted-foreground uppercase">
+            Modules
+          </Label>
+          <span v-if="totalSelectedCount > 0" class="text-xs text-muted-foreground">
+            {{ totalSelectedCount }} sélectionné{{ totalSelectedCount > 1 ? 's' : '' }}
+          </span>
         </div>
+
+        <!-- Module search -->
+        <div class="relative">
+          <Search class="absolute left-2.5 top-1/2 -translate-y-1/2 size-3.5 text-muted-foreground" />
+          <Input
+            v-model="moduleSearch"
+            placeholder="Rechercher un module..."
+            class="h-8 pl-8 text-xs"
+          />
+        </div>
+
+        <!-- Categories -->
+        <div class="space-y-1">
+          <Collapsible
+            v-for="cat in sortedCategories"
+            :key="cat"
+            :open="openCategories.has(cat)"
+          >
+            <CollapsibleTrigger
+              class="flex items-center gap-2 w-full px-2 py-1.5 rounded-md text-sm font-medium hover:bg-muted transition-colors"
+              @click="toggleCategory(cat)"
+            >
+              <ChevronRight
+                class="size-3.5 text-muted-foreground transition-transform duration-200"
+                :class="openCategories.has(cat) ? 'rotate-90' : ''"
+              />
+              <span class="flex-1 text-left text-xs uppercase tracking-wide text-muted-foreground">
+                {{ MODULE_CATEGORIES[cat]?.label || cat }}
+              </span>
+              <span
+                v-if="selectedCountForCategory(cat) > 0"
+                class="text-[10px] font-semibold text-primary bg-primary/10 rounded-full px-1.5 py-0.5"
+              >
+                {{ selectedCountForCategory(cat) }}
+              </span>
+            </CollapsibleTrigger>
+
+            <CollapsibleContent>
+              <div class="space-y-0.5 mt-0.5">
+                <button
+                  v-for="mod in modulesByCategory[cat]"
+                  :key="mod.id"
+                  class="w-full flex items-center gap-3 px-3 py-2 rounded-md text-sm text-left transition-colors"
+                  :class="selectedModules.includes(mod.id) ? 'bg-primary/10' : 'hover:bg-muted'"
+                  @click="toggleModule(mod.id)"
+                >
+                  <!-- Checkbox -->
+                  <div
+                    class="size-4 rounded border-2 flex items-center justify-center transition-colors shrink-0"
+                    :class="selectedModules.includes(mod.id)
+                      ? 'bg-primary border-primary'
+                      : 'border-muted-foreground/30'"
+                  >
+                    <Check v-if="selectedModules.includes(mod.id)" class="size-3 text-primary-foreground" />
+                  </div>
+
+                  <!-- Module Info -->
+                  <div class="flex-1 min-w-0">
+                    <div class="flex items-center gap-2">
+                      <span
+                        class="size-2 rounded-full shrink-0"
+                        :class="getModuleColor(mod.id).bg"
+                      />
+                      <span class="font-medium truncate" :class="selectedModules.includes(mod.id) ? getModuleColor(mod.id).text : ''">
+                        {{ mod.name }}
+                      </span>
+                      <Badge
+                        v-if="mod.isCommunity"
+                        variant="outline"
+                        class="text-[10px] px-1 py-0 border-amber-500/50 text-amber-500"
+                      >
+                        Communautaire
+                      </Badge>
+                      <Badge
+                        v-else
+                        variant="outline"
+                        class="text-[10px] px-1 py-0 border-blue-500/50 text-blue-500"
+                      >
+                        Officiel
+                      </Badge>
+                    </div>
+                    <p v-if="mod.description" class="text-xs text-muted-foreground truncate mt-0.5">
+                      {{ mod.description }}
+                    </p>
+                  </div>
+                </button>
+              </div>
+            </CollapsibleContent>
+          </Collapsible>
+
+          <!-- No results -->
+          <p v-if="moduleSearch.trim() && !sortedCategories.length" class="text-xs text-muted-foreground text-center py-3">
+            Aucun module trouvé
+          </p>
+        </div>
+
       </div>
+    </div>
+
+    <!-- Sticky configure button -->
+    <div v-if="configurableModulesCount > 0" class="px-4 py-3 border-t bg-background">
+      <Button
+        class="w-full"
+        size="sm"
+        @click="emit('openConfig')"
+      >
+        <Settings class="size-4 mr-2" />
+        Configurer {{ configurableModulesCount }} module{{ configurableModulesCount > 1 ? 's' : '' }}
+      </Button>
     </div>
   </div>
 </template>

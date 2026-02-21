@@ -1,21 +1,52 @@
 import { defineEventHandler, readBody, setHeader, send } from "h3";
-import { exec } from "child_process";
-import { promisify } from "util";
+import { spawn } from "child_process";
 import fs from "fs";
 import { prisma } from "~~/server/utils/db";
 import { auth } from "~~/lib/auth";
-
-const execAsync = promisify(exec);
 
 interface CreateProjectBody {
   projectName: string;
   framework: string;
   modules: string[];
+  answers?: Record<string, Record<string, string | boolean>>;
+  packageManager?: string;
+}
+
+// Valide qu'une string ne contient que des caractères safe (alphanum, tirets, underscores, points)
+function sanitize(input: string): string {
+  return input.replace(/[^a-zA-Z0-9\-_.]/g, '');
+}
+
+function runCli(args: string[], cwd: string): Promise<{ stdout: string; stderr: string }> {
+  return new Promise((resolve, reject) => {
+    const child = spawn('npx', ['ts-node', 'src/index.ts', ...args], {
+      cwd,
+      timeout: 120000,
+      env: { ...process.env },
+    });
+
+    let stdout = '';
+    let stderr = '';
+
+    child.stdout.on('data', (data) => { stdout += data.toString(); });
+    child.stderr.on('data', (data) => { stderr += data.toString(); });
+
+    child.on('close', (code) => {
+      if (code === 0) {
+        resolve({ stdout, stderr });
+      } else {
+        const error = new Error(`CLI exited with code ${code}`) as Error & { stderr: string };
+        error.stderr = stderr;
+        reject(error);
+      }
+    });
+
+    child.on('error', reject);
+  });
 }
 
 export default defineEventHandler(async (event) => {
   try {
-    // Vérifier l'authentification
     const session = await auth.api.getSession({
       headers: event.headers,
     });
@@ -30,24 +61,45 @@ export default defineEventHandler(async (event) => {
       return { success: false, error: "projectName and framework are required" };
     }
 
-    const modulesArg = `--modules "${body.modules?.length > 0 ? body.modules.join(',') : 'none'}"`;
-
-    // Chemin vers la CLI (monté dans le container Docker)
     const cliPath = process.env.KITE_CLI_PATH || '/cli';
     const outputDir = '/tmp/kite-projects';
 
-    // Créer le dossier de sortie s'il n'existe pas
     if (!fs.existsSync(outputDir)) {
       fs.mkdirSync(outputDir, { recursive: true });
     }
 
-    const command = `cd "${cliPath}" && npx ts-node src/index.ts create --name "${body.projectName}" --framework "${body.framework}" ${modulesArg} --json --no-install --zip --output "${outputDir}"`;
+    // Module IDs from DB are composite (e.g. "nextjs-better-auth")
+    // but CLI expects simple IDs (e.g. "better-auth")
+    const frameworkPrefix = body.framework + '-';
+    const simpleModules = body.modules?.map(m => m.startsWith(frameworkPrefix) ? m.slice(frameworkPrefix.length) : m) || [];
+    const modulesStr = simpleModules.length > 0 ? simpleModules.map(sanitize).join(',') : 'none';
 
-    const { stdout, stderr } = await execAsync(command, {
-      timeout: 120000, // 2 minutes timeout
-    });
+    const args = [
+      'create',
+      '--name', sanitize(body.projectName),
+      '--framework', sanitize(body.framework),
+      '--modules', modulesStr,
+      '--json',
+      '--no-install',
+      '--zip',
+      '--output', outputDir,
+    ];
 
-    // Parser la sortie JSON
+    if (body.packageManager) {
+      args.push('--pm', sanitize(body.packageManager));
+    }
+
+    if (body.answers && Object.keys(body.answers).length > 0) {
+      const cliAnswers: Record<string, any> = {};
+      for (const [key, value] of Object.entries(body.answers)) {
+        const simpleKey = key.startsWith(frameworkPrefix) ? key.slice(frameworkPrefix.length) : key;
+        cliAnswers[simpleKey] = value;
+      }
+      args.push('--answers', JSON.stringify(cliAnswers));
+    }
+
+    const { stdout } = await runCli(args, cliPath);
+
     let result;
     try {
       result = JSON.parse(stdout.trim());
@@ -55,8 +107,6 @@ export default defineEventHandler(async (event) => {
       return {
         success: false,
         error: "Failed to parse CLI output",
-        stdout,
-        stderr
       };
     }
 
@@ -64,7 +114,6 @@ export default defineEventHandler(async (event) => {
       return result;
     }
 
-    // Sauvegarder le projet en base de données
     await prisma.project.create({
       data: {
         name: body.projectName,
@@ -84,15 +133,12 @@ export default defineEventHandler(async (event) => {
       },
     });
 
-    // Lire le fichier zip et le retourner
     const zipPath = result.zipPath;
     const zipBuffer = fs.readFileSync(zipPath);
     const fileName = `${body.projectName}.zip`;
 
-    // Supprimer le fichier zip après lecture
     fs.unlinkSync(zipPath);
 
-    // Définir les headers pour le téléchargement
     setHeader(event, 'Content-Type', 'application/zip');
     setHeader(event, 'Content-Disposition', `attachment; filename="${fileName}"`);
     setHeader(event, 'Content-Length', zipBuffer.length.toString());

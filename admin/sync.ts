@@ -9,6 +9,7 @@ interface ModuleLite {
   id: string;
   name: string;
   description: string;
+  prompts?: any[];
 }
 
 interface FrameworkLite {
@@ -52,7 +53,8 @@ export const sync = async (): Promise<FrameworkLite[]> => {
       modules: framework.modules.map(m => ({
         id: m.id,
         name: m.name,
-        description: m.description ?? ''
+        description: m.description ?? '',
+        prompts: m.prompts && m.prompts.length > 0 ? m.prompts : undefined,
       }))
     };
 

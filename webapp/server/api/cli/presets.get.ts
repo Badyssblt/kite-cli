@@ -23,5 +23,6 @@ export default defineEventHandler(async () => {
     image: preset.image,
     frameworks: preset.frameworks.map((pf) => pf.frameworkId),
     modules: preset.modules.map((pm) => pm.moduleId),
+    answers: preset.answers as Record<string, Record<string, string | boolean>> | null,
   }));
 });

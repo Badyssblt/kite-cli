@@ -11,7 +11,7 @@ export default defineEventHandler(async (event) => {
       id: string;
       name: string;
       description: string;
-      modules: Array<{ id: string; name: string; description: string }>;
+      modules: Array<{ id: string; name: string; description: string; prompts?: any[] }>;
     }>;
 
     
@@ -19,6 +19,9 @@ export default defineEventHandler(async (event) => {
     if (!Array.isArray(body)) {
       return { success: false, error: "Le body doit être un tableau de frameworks" };
     }
+
+    // Collect all expected composite ids
+    const allCompositeIds: string[] = [];
 
     // Inserer ou mettre à jour dans la BDD
     for (const fw of body) {
@@ -29,12 +32,32 @@ export default defineEventHandler(async (event) => {
       });
 
       for (const mod of fw.modules) {
+        const compositeId = `${fw.id}-${mod.id}`;
+        allCompositeIds.push(compositeId);
         await prisma.module.upsert({
-          where: { id: mod.id },
-          update: { name: mod.name, description: mod.description, frameworkId: fw.id },
-          create: { id: mod.id, name: mod.name, description: mod.description, frameworkId: fw.id }
+          where: { id: compositeId },
+          update: { name: mod.name, description: mod.description, prompts: mod.prompts ?? null, frameworkId: fw.id },
+          create: { id: compositeId, name: mod.name, description: mod.description, prompts: mod.prompts ?? null, frameworkId: fw.id }
         });
       }
+    }
+
+    // Cleanup old official modules that are no longer in the sync payload
+    const frameworkIds = body.map(fw => fw.id);
+    const staleModules = await prisma.module.findMany({
+      where: {
+        frameworkId: { in: frameworkIds },
+        isCommunity: false,
+        id: { notIn: allCompositeIds },
+      },
+      select: { id: true },
+    });
+    const staleIds = staleModules.map(m => m.id);
+
+    if (staleIds.length > 0) {
+      await prisma.projectModule.deleteMany({ where: { moduleId: { in: staleIds } } });
+      await prisma.presetModule.deleteMany({ where: { moduleId: { in: staleIds } } });
+      await prisma.module.deleteMany({ where: { id: { in: staleIds } } });
     }
 
     return { success: true, message: "Frameworks et modules insérés/mis à jour" };

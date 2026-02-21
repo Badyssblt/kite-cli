@@ -21,6 +21,7 @@ interface CreateOptions {
   name?: string;
   framework?: string;
   modules?: string;
+  answers?: string;
   install?: boolean;
   json?: boolean;
   zip?: boolean;
@@ -56,6 +57,7 @@ export const createCommand = new Command('create')
   .option('--dry-run', 'Preview what would be created without making changes')
   .option('--pm <manager>', 'Package manager to use (npm, pnpm, yarn, bun)')
   .option('--preset <preset>', 'Use a preset configuration')
+  .option('--answers <json>', 'Module answers as JSON string')
   .action(async (options: CreateOptions) => {
     const isNonInteractive = options.name && options.framework;
 
@@ -131,7 +133,15 @@ export const createCommand = new Command('create')
     // Avec un preset : on utilise les réponses du preset + defaults, on ne pose que si ni l'un ni l'autre
     let moduleAnswers: ModuleAnswers;
     if (isNonInteractive) {
-      moduleAnswers = activePreset?.answers || {};
+      let parsedAnswers: ModuleAnswers = {};
+      if (options.answers) {
+        try {
+          parsedAnswers = JSON.parse(options.answers);
+        } catch {
+          debug('Failed to parse --answers JSON, using defaults');
+        }
+      }
+      moduleAnswers = { ...activePreset?.answers, ...parsedAnswers };
     } else {
       moduleAnswers = await promptService.askModuleQuestions(
         frameworkId,

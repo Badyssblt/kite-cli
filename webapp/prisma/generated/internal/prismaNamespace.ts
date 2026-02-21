@@ -386,6 +386,10 @@ type FieldRefInputType<Model, FieldType> = Model extends never ? never : FieldRe
 export const ModelName = {
   Framework: 'Framework',
   Module: 'Module',
+  ModuleStatus: 'ModuleStatus',
+  ModuleFile: 'ModuleFile',
+  ModuleDependency: 'ModuleDependency',
+  ModuleEnvVar: 'ModuleEnvVar',
   Project: 'Project',
   ProjectModule: 'ProjectModule',
   User: 'User',
@@ -410,7 +414,7 @@ export type TypeMap<ExtArgs extends runtime.Types.Extensions.InternalArgs = runt
     omit: GlobalOmitOptions
   }
   meta: {
-    modelProps: "framework" | "module" | "project" | "projectModule" | "user" | "session" | "account" | "verification" | "preset" | "presetFramework" | "presetModule"
+    modelProps: "framework" | "module" | "moduleStatus" | "moduleFile" | "moduleDependency" | "moduleEnvVar" | "project" | "projectModule" | "user" | "session" | "account" | "verification" | "preset" | "presetFramework" | "presetModule"
     txIsolationLevel: TransactionIsolationLevel
   }
   model: {
@@ -543,6 +547,270 @@ export type TypeMap<ExtArgs extends runtime.Types.Extensions.InternalArgs = runt
         count: {
           args: Prisma.ModuleCountArgs<ExtArgs>
           result: runtime.Types.Utils.Optional<Prisma.ModuleCountAggregateOutputType> | number
+        }
+      }
+    }
+    ModuleStatus: {
+      payload: Prisma.$ModuleStatusPayload<ExtArgs>
+      fields: Prisma.ModuleStatusFieldRefs
+      operations: {
+        findUnique: {
+          args: Prisma.ModuleStatusFindUniqueArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$ModuleStatusPayload> | null
+        }
+        findUniqueOrThrow: {
+          args: Prisma.ModuleStatusFindUniqueOrThrowArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$ModuleStatusPayload>
+        }
+        findFirst: {
+          args: Prisma.ModuleStatusFindFirstArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$ModuleStatusPayload> | null
+        }
+        findFirstOrThrow: {
+          args: Prisma.ModuleStatusFindFirstOrThrowArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$ModuleStatusPayload>
+        }
+        findMany: {
+          args: Prisma.ModuleStatusFindManyArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$ModuleStatusPayload>[]
+        }
+        create: {
+          args: Prisma.ModuleStatusCreateArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$ModuleStatusPayload>
+        }
+        createMany: {
+          args: Prisma.ModuleStatusCreateManyArgs<ExtArgs>
+          result: BatchPayload
+        }
+        delete: {
+          args: Prisma.ModuleStatusDeleteArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$ModuleStatusPayload>
+        }
+        update: {
+          args: Prisma.ModuleStatusUpdateArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$ModuleStatusPayload>
+        }
+        deleteMany: {
+          args: Prisma.ModuleStatusDeleteManyArgs<ExtArgs>
+          result: BatchPayload
+        }
+        updateMany: {
+          args: Prisma.ModuleStatusUpdateManyArgs<ExtArgs>
+          result: BatchPayload
+        }
+        upsert: {
+          args: Prisma.ModuleStatusUpsertArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$ModuleStatusPayload>
+        }
+        aggregate: {
+          args: Prisma.ModuleStatusAggregateArgs<ExtArgs>
+          result: runtime.Types.Utils.Optional<Prisma.AggregateModuleStatus>
+        }
+        groupBy: {
+          args: Prisma.ModuleStatusGroupByArgs<ExtArgs>
+          result: runtime.Types.Utils.Optional<Prisma.ModuleStatusGroupByOutputType>[]
+        }
+        count: {
+          args: Prisma.ModuleStatusCountArgs<ExtArgs>
+          result: runtime.Types.Utils.Optional<Prisma.ModuleStatusCountAggregateOutputType> | number
+        }
+      }
+    }
+    ModuleFile: {
+      payload: Prisma.$ModuleFilePayload<ExtArgs>
+      fields: Prisma.ModuleFileFieldRefs
+      operations: {
+        findUnique: {
+          args: Prisma.ModuleFileFindUniqueArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$ModuleFilePayload> | null
+        }
+        findUniqueOrThrow: {
+          args: Prisma.ModuleFileFindUniqueOrThrowArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$ModuleFilePayload>
+        }
+        findFirst: {
+          args: Prisma.ModuleFileFindFirstArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$ModuleFilePayload> | null
+        }
+        findFirstOrThrow: {
+          args: Prisma.ModuleFileFindFirstOrThrowArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$ModuleFilePayload>
+        }
+        findMany: {
+          args: Prisma.ModuleFileFindManyArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$ModuleFilePayload>[]
+        }
+        create: {
+          args: Prisma.ModuleFileCreateArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$ModuleFilePayload>
+        }
+        createMany: {
+          args: Prisma.ModuleFileCreateManyArgs<ExtArgs>
+          result: BatchPayload
+        }
+        delete: {
+          args: Prisma.ModuleFileDeleteArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$ModuleFilePayload>
+        }
+        update: {
+          args: Prisma.ModuleFileUpdateArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$ModuleFilePayload>
+        }
+        deleteMany: {
+          args: Prisma.ModuleFileDeleteManyArgs<ExtArgs>
+          result: BatchPayload
+        }
+        updateMany: {
+          args: Prisma.ModuleFileUpdateManyArgs<ExtArgs>
+          result: BatchPayload
+        }
+        upsert: {
+          args: Prisma.ModuleFileUpsertArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$ModuleFilePayload>
+        }
+        aggregate: {
+          args: Prisma.ModuleFileAggregateArgs<ExtArgs>
+          result: runtime.Types.Utils.Optional<Prisma.AggregateModuleFile>
+        }
+        groupBy: {
+          args: Prisma.ModuleFileGroupByArgs<ExtArgs>
+          result: runtime.Types.Utils.Optional<Prisma.ModuleFileGroupByOutputType>[]
+        }
+        count: {
+          args: Prisma.ModuleFileCountArgs<ExtArgs>
+          result: runtime.Types.Utils.Optional<Prisma.ModuleFileCountAggregateOutputType> | number
+        }
+      }
+    }
+    ModuleDependency: {
+      payload: Prisma.$ModuleDependencyPayload<ExtArgs>
+      fields: Prisma.ModuleDependencyFieldRefs
+      operations: {
+        findUnique: {
+          args: Prisma.ModuleDependencyFindUniqueArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$ModuleDependencyPayload> | null
+        }
+        findUniqueOrThrow: {
+          args: Prisma.ModuleDependencyFindUniqueOrThrowArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$ModuleDependencyPayload>
+        }
+        findFirst: {
+          args: Prisma.ModuleDependencyFindFirstArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$ModuleDependencyPayload> | null
+        }
+        findFirstOrThrow: {
+          args: Prisma.ModuleDependencyFindFirstOrThrowArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$ModuleDependencyPayload>
+        }
+        findMany: {
+          args: Prisma.ModuleDependencyFindManyArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$ModuleDependencyPayload>[]
+        }
+        create: {
+          args: Prisma.ModuleDependencyCreateArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$ModuleDependencyPayload>
+        }
+        createMany: {
+          args: Prisma.ModuleDependencyCreateManyArgs<ExtArgs>
+          result: BatchPayload
+        }
+        delete: {
+          args: Prisma.ModuleDependencyDeleteArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$ModuleDependencyPayload>
+        }
+        update: {
+          args: Prisma.ModuleDependencyUpdateArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$ModuleDependencyPayload>
+        }
+        deleteMany: {
+          args: Prisma.ModuleDependencyDeleteManyArgs<ExtArgs>
+          result: BatchPayload
+        }
+        updateMany: {
+          args: Prisma.ModuleDependencyUpdateManyArgs<ExtArgs>
+          result: BatchPayload
+        }
+        upsert: {
+          args: Prisma.ModuleDependencyUpsertArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$ModuleDependencyPayload>
+        }
+        aggregate: {
+          args: Prisma.ModuleDependencyAggregateArgs<ExtArgs>
+          result: runtime.Types.Utils.Optional<Prisma.AggregateModuleDependency>
+        }
+        groupBy: {
+          args: Prisma.ModuleDependencyGroupByArgs<ExtArgs>
+          result: runtime.Types.Utils.Optional<Prisma.ModuleDependencyGroupByOutputType>[]
+        }
+        count: {
+          args: Prisma.ModuleDependencyCountArgs<ExtArgs>
+          result: runtime.Types.Utils.Optional<Prisma.ModuleDependencyCountAggregateOutputType> | number
+        }
+      }
+    }
+    ModuleEnvVar: {
+      payload: Prisma.$ModuleEnvVarPayload<ExtArgs>
+      fields: Prisma.ModuleEnvVarFieldRefs
+      operations: {
+        findUnique: {
+          args: Prisma.ModuleEnvVarFindUniqueArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$ModuleEnvVarPayload> | null
+        }
+        findUniqueOrThrow: {
+          args: Prisma.ModuleEnvVarFindUniqueOrThrowArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$ModuleEnvVarPayload>
+        }
+        findFirst: {
+          args: Prisma.ModuleEnvVarFindFirstArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$ModuleEnvVarPayload> | null
+        }
+        findFirstOrThrow: {
+          args: Prisma.ModuleEnvVarFindFirstOrThrowArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$ModuleEnvVarPayload>
+        }
+        findMany: {
+          args: Prisma.ModuleEnvVarFindManyArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$ModuleEnvVarPayload>[]
+        }
+        create: {
+          args: Prisma.ModuleEnvVarCreateArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$ModuleEnvVarPayload>
+        }
+        createMany: {
+          args: Prisma.ModuleEnvVarCreateManyArgs<ExtArgs>
+          result: BatchPayload
+        }
+        delete: {
+          args: Prisma.ModuleEnvVarDeleteArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$ModuleEnvVarPayload>
+        }
+        update: {
+          args: Prisma.ModuleEnvVarUpdateArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$ModuleEnvVarPayload>
+        }
+        deleteMany: {
+          args: Prisma.ModuleEnvVarDeleteManyArgs<ExtArgs>
+          result: BatchPayload
+        }
+        updateMany: {
+          args: Prisma.ModuleEnvVarUpdateManyArgs<ExtArgs>
+          result: BatchPayload
+        }
+        upsert: {
+          args: Prisma.ModuleEnvVarUpsertArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$ModuleEnvVarPayload>
+        }
+        aggregate: {
+          args: Prisma.ModuleEnvVarAggregateArgs<ExtArgs>
+          result: runtime.Types.Utils.Optional<Prisma.AggregateModuleEnvVar>
+        }
+        groupBy: {
+          args: Prisma.ModuleEnvVarGroupByArgs<ExtArgs>
+          result: runtime.Types.Utils.Optional<Prisma.ModuleEnvVarGroupByOutputType>[]
+        }
+        count: {
+          args: Prisma.ModuleEnvVarCountArgs<ExtArgs>
+          result: runtime.Types.Utils.Optional<Prisma.ModuleEnvVarCountAggregateOutputType> | number
         }
       }
     }
@@ -1192,10 +1460,57 @@ export const ModuleScalarFieldEnum = {
   id: 'id',
   name: 'name',
   description: 'description',
-  frameworkId: 'frameworkId'
+  category: 'category',
+  prompts: 'prompts',
+  frameworkId: 'frameworkId',
+  authorId: 'authorId',
+  isCommunity: 'isCommunity'
 } as const
 
 export type ModuleScalarFieldEnum = (typeof ModuleScalarFieldEnum)[keyof typeof ModuleScalarFieldEnum]
+
+
+export const ModuleStatusScalarFieldEnum = {
+  id: 'id',
+  moduleId: 'moduleId',
+  status: 'status',
+  reason: 'reason',
+  createdAt: 'createdAt',
+  updatedAt: 'updatedAt'
+} as const
+
+export type ModuleStatusScalarFieldEnum = (typeof ModuleStatusScalarFieldEnum)[keyof typeof ModuleStatusScalarFieldEnum]
+
+
+export const ModuleFileScalarFieldEnum = {
+  id: 'id',
+  moduleId: 'moduleId',
+  path: 'path',
+  content: 'content'
+} as const
+
+export type ModuleFileScalarFieldEnum = (typeof ModuleFileScalarFieldEnum)[keyof typeof ModuleFileScalarFieldEnum]
+
+
+export const ModuleDependencyScalarFieldEnum = {
+  id: 'id',
+  moduleId: 'moduleId',
+  name: 'name',
+  isDev: 'isDev'
+} as const
+
+export type ModuleDependencyScalarFieldEnum = (typeof ModuleDependencyScalarFieldEnum)[keyof typeof ModuleDependencyScalarFieldEnum]
+
+
+export const ModuleEnvVarScalarFieldEnum = {
+  id: 'id',
+  moduleId: 'moduleId',
+  key: 'key',
+  defaultValue: 'defaultValue',
+  description: 'description'
+} as const
+
+export type ModuleEnvVarScalarFieldEnum = (typeof ModuleEnvVarScalarFieldEnum)[keyof typeof ModuleEnvVarScalarFieldEnum]
 
 
 export const ProjectScalarFieldEnum = {
@@ -1226,7 +1541,8 @@ export const UserScalarFieldEnum = {
   emailVerified: 'emailVerified',
   image: 'image',
   createdAt: 'createdAt',
-  updatedAt: 'updatedAt'
+  updatedAt: 'updatedAt',
+  role: 'role'
 } as const
 
 export type UserScalarFieldEnum = (typeof UserScalarFieldEnum)[keyof typeof UserScalarFieldEnum]
@@ -1282,6 +1598,7 @@ export const PresetScalarFieldEnum = {
   name: 'name',
   description: 'description',
   image: 'image',
+  answers: 'answers',
   createdAt: 'createdAt',
   updatedAt: 'updatedAt'
 } as const
@@ -1313,6 +1630,14 @@ export const SortOrder = {
 export type SortOrder = (typeof SortOrder)[keyof typeof SortOrder]
 
 
+export const NullableJsonNullValueInput = {
+  DbNull: DbNull,
+  JsonNull: JsonNull
+} as const
+
+export type NullableJsonNullValueInput = (typeof NullableJsonNullValueInput)[keyof typeof NullableJsonNullValueInput]
+
+
 export const FrameworkOrderByRelevanceFieldEnum = {
   id: 'id',
   name: 'name',
@@ -1322,14 +1647,21 @@ export const FrameworkOrderByRelevanceFieldEnum = {
 export type FrameworkOrderByRelevanceFieldEnum = (typeof FrameworkOrderByRelevanceFieldEnum)[keyof typeof FrameworkOrderByRelevanceFieldEnum]
 
 
-export const ModuleOrderByRelevanceFieldEnum = {
-  id: 'id',
-  name: 'name',
-  description: 'description',
-  frameworkId: 'frameworkId'
+export const JsonNullValueFilter = {
+  DbNull: DbNull,
+  JsonNull: JsonNull,
+  AnyNull: AnyNull
 } as const
 
-export type ModuleOrderByRelevanceFieldEnum = (typeof ModuleOrderByRelevanceFieldEnum)[keyof typeof ModuleOrderByRelevanceFieldEnum]
+export type JsonNullValueFilter = (typeof JsonNullValueFilter)[keyof typeof JsonNullValueFilter]
+
+
+export const QueryMode = {
+  default: 'default',
+  insensitive: 'insensitive'
+} as const
+
+export type QueryMode = (typeof QueryMode)[keyof typeof QueryMode]
 
 
 export const NullsOrder = {
@@ -1338,6 +1670,57 @@ export const NullsOrder = {
 } as const
 
 export type NullsOrder = (typeof NullsOrder)[keyof typeof NullsOrder]
+
+
+export const ModuleOrderByRelevanceFieldEnum = {
+  id: 'id',
+  name: 'name',
+  description: 'description',
+  category: 'category',
+  frameworkId: 'frameworkId',
+  authorId: 'authorId'
+} as const
+
+export type ModuleOrderByRelevanceFieldEnum = (typeof ModuleOrderByRelevanceFieldEnum)[keyof typeof ModuleOrderByRelevanceFieldEnum]
+
+
+export const ModuleStatusOrderByRelevanceFieldEnum = {
+  id: 'id',
+  moduleId: 'moduleId',
+  reason: 'reason'
+} as const
+
+export type ModuleStatusOrderByRelevanceFieldEnum = (typeof ModuleStatusOrderByRelevanceFieldEnum)[keyof typeof ModuleStatusOrderByRelevanceFieldEnum]
+
+
+export const ModuleFileOrderByRelevanceFieldEnum = {
+  id: 'id',
+  moduleId: 'moduleId',
+  path: 'path',
+  content: 'content'
+} as const
+
+export type ModuleFileOrderByRelevanceFieldEnum = (typeof ModuleFileOrderByRelevanceFieldEnum)[keyof typeof ModuleFileOrderByRelevanceFieldEnum]
+
+
+export const ModuleDependencyOrderByRelevanceFieldEnum = {
+  id: 'id',
+  moduleId: 'moduleId',
+  name: 'name'
+} as const
+
+export type ModuleDependencyOrderByRelevanceFieldEnum = (typeof ModuleDependencyOrderByRelevanceFieldEnum)[keyof typeof ModuleDependencyOrderByRelevanceFieldEnum]
+
+
+export const ModuleEnvVarOrderByRelevanceFieldEnum = {
+  id: 'id',
+  moduleId: 'moduleId',
+  key: 'key',
+  defaultValue: 'defaultValue',
+  description: 'description'
+} as const
+
+export type ModuleEnvVarOrderByRelevanceFieldEnum = (typeof ModuleEnvVarOrderByRelevanceFieldEnum)[keyof typeof ModuleEnvVarOrderByRelevanceFieldEnum]
 
 
 export const ProjectOrderByRelevanceFieldEnum = {
@@ -1444,9 +1827,16 @@ export type StringFieldRefInput<$PrismaModel> = FieldRefInputType<$PrismaModel, 
 
 
 /**
- * Reference to a field of type 'DateTime'
+ * Reference to a field of type 'Json'
  */
-export type DateTimeFieldRefInput<$PrismaModel> = FieldRefInputType<$PrismaModel, 'DateTime'>
+export type JsonFieldRefInput<$PrismaModel> = FieldRefInputType<$PrismaModel, 'Json'>
+    
+
+
+/**
+ * Reference to a field of type 'QueryMode'
+ */
+export type EnumQueryModeFieldRefInput<$PrismaModel> = FieldRefInputType<$PrismaModel, 'QueryMode'>
     
 
 
@@ -1454,6 +1844,27 @@ export type DateTimeFieldRefInput<$PrismaModel> = FieldRefInputType<$PrismaModel
  * Reference to a field of type 'Boolean'
  */
 export type BooleanFieldRefInput<$PrismaModel> = FieldRefInputType<$PrismaModel, 'Boolean'>
+    
+
+
+/**
+ * Reference to a field of type 'ModuleStatusEnum'
+ */
+export type EnumModuleStatusEnumFieldRefInput<$PrismaModel> = FieldRefInputType<$PrismaModel, 'ModuleStatusEnum'>
+    
+
+
+/**
+ * Reference to a field of type 'DateTime'
+ */
+export type DateTimeFieldRefInput<$PrismaModel> = FieldRefInputType<$PrismaModel, 'DateTime'>
+    
+
+
+/**
+ * Reference to a field of type 'UserRole'
+ */
+export type EnumUserRoleFieldRefInput<$PrismaModel> = FieldRefInputType<$PrismaModel, 'UserRole'>
     
 
 
@@ -1560,6 +1971,10 @@ export type PrismaClientOptions = ({
 export type GlobalOmitConfig = {
   framework?: Prisma.FrameworkOmit
   module?: Prisma.ModuleOmit
+  moduleStatus?: Prisma.ModuleStatusOmit
+  moduleFile?: Prisma.ModuleFileOmit
+  moduleDependency?: Prisma.ModuleDependencyOmit
+  moduleEnvVar?: Prisma.ModuleEnvVarOmit
   project?: Prisma.ProjectOmit
   projectModule?: Prisma.ProjectModuleOmit
   user?: Prisma.UserOmit

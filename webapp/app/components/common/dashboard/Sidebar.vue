@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { ChevronRight, Home, Folder, Plus, LogOut, User, ChevronsUpDown, Sparkles } from 'lucide-vue-next'
+import { ChevronRight, Home, Folder, Plus, LogOut, User, ChevronsUpDown, Sparkles, Settings, Layers, Puzzle, Shield } from 'lucide-vue-next'
 import {
   Collapsible,
   CollapsibleContent,
@@ -24,6 +24,7 @@ const router = useRouter()
 const route = useRoute()
 
 const user = computed(() => (session.value as any)?.user)
+const isAdmin = computed(() => user.value?.role === 'ADMIN')
 
 const userInitials = computed(() => {
   const name = user.value?.name || user.value?.email || ''
@@ -93,6 +94,45 @@ async function handleSignOut() {
         </NuxtLink>
       </Button>
 
+      <!-- Presets -->
+      <Button
+        variant="ghost"
+        as-child
+        class="w-full justify-start gap-2"
+        :class="route.path.startsWith('/dashboard/presets') ? 'bg-sidebar-accent text-sidebar-accent-foreground' : ''"
+      >
+        <NuxtLink to="/dashboard/presets">
+          <Layers class="size-4" />
+          <span>Presets</span>
+        </NuxtLink>
+      </Button>
+
+      <!-- Mes modules -->
+      <Button
+        variant="ghost"
+        as-child
+        class="w-full justify-start gap-2"
+        :class="route.path.startsWith('/dashboard/modules') ? 'bg-sidebar-accent text-sidebar-accent-foreground' : ''"
+      >
+        <NuxtLink to="/dashboard/modules">
+          <Puzzle class="size-4" />
+          <span>Mes modules</span>
+        </NuxtLink>
+      </Button>
+      <!-- Modération (admin only) -->
+      <Button
+        v-if="isAdmin"
+        variant="ghost"
+        as-child
+        class="w-full justify-start gap-2"
+        :class="route.path.startsWith('/dashboard/admin') ? 'bg-sidebar-accent text-sidebar-accent-foreground' : ''"
+      >
+        <NuxtLink to="/dashboard/admin/modules">
+          <Shield class="size-4" />
+          <span>Modération</span>
+        </NuxtLink>
+      </Button>
+
       <!-- Projets -->
       <Collapsible v-if="hasProjects" default-open class="group/collapsible">
         <CollapsibleTrigger as-child>
@@ -113,9 +153,12 @@ async function handleSignOut() {
         </CollapsibleContent>
       </Collapsible>
 
+      
+
       <div v-else-if="!pending" class="px-3 py-2 text-xs text-muted-foreground">
         Aucun projet
       </div>
+
     </nav>
 
     <!-- User footer -->
@@ -139,6 +182,12 @@ async function handleSignOut() {
             <NuxtLink to="/dashboard/profile" class="cursor-pointer">
               <User class="size-4 mr-2" />
               Profil
+            </NuxtLink>
+          </DropdownMenuItem>
+          <DropdownMenuItem as-child>
+            <NuxtLink to="/dashboard/settings" class="cursor-pointer">
+              <Settings class="size-4 mr-2" />
+              Paramètres
             </NuxtLink>
           </DropdownMenuItem>
           <DropdownMenuSeparator />

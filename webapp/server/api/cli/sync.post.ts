@@ -89,12 +89,27 @@ export default defineEventHandler(async (event) => {
         }
 
         if (preset.modules.length > 0) {
-          await prisma.presetModule.createMany({
-            data: preset.modules.map((moduleId) => ({
-              presetId: preset.id,
-              moduleId,
-            })),
+          // Build composite ids for each framework-module combination
+          const presetModuleData: { presetId: string; moduleId: string }[] = [];
+          for (const frameworkId of preset.frameworks) {
+            for (const moduleId of preset.modules) {
+              presetModuleData.push({
+                presetId: preset.id,
+                moduleId: `${frameworkId}-${moduleId}`,
+              });
+            }
+          }
+          // Only insert modules that actually exist in DB
+          const existingModules = await prisma.module.findMany({
+            where: { id: { in: presetModuleData.map(d => d.moduleId) } },
+            select: { id: true },
           });
+          const existingIds = new Set(existingModules.map(m => m.id));
+          const validData = presetModuleData.filter(d => existingIds.has(d.moduleId));
+
+          if (validData.length > 0) {
+            await prisma.presetModule.createMany({ data: validData });
+          }
         }
 
         presetsCount++;

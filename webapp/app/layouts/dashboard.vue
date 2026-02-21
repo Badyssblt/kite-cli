@@ -19,9 +19,12 @@ const breadcrumbs = computed(() => {
   const labels: Record<string, string> = {
     dashboard: 'Dashboard',
     project: 'Projets',
-    create: 'Nouveau projet',
+    create: 'Créer',
     profile: 'Profil',
     settings: 'Paramètres',
+    presets: 'Presets',
+    modules: 'Modules',
+    admin: 'Administration',
   }
 
   let currentPath = ''
@@ -39,8 +42,8 @@ const breadcrumbs = computed(() => {
 <template>
   <div class="flex min-h-screen">
     <DashboardSidebar />
-    <div class="flex-1 flex flex-col">
-      <header class="flex h-14 shrink-0 items-center gap-2 border-b px-6">
+    <div class="flex-1 flex flex-col min-h-0">
+      <header class="flex h-[65px] shrink-0 items-center gap-2 border-b px-6">
         <Breadcrumb>
           <BreadcrumbList>
             <template v-for="(crumb, index) in breadcrumbs" :key="index">
@@ -55,7 +58,7 @@ const breadcrumbs = computed(() => {
           </BreadcrumbList>
         </Breadcrumb>
       </header>
-      <main class="flex-1 p-6">
+      <main class="flex-1 p-4 min-h-0 overflow-auto">
         <slot />
       </main>
     </div>

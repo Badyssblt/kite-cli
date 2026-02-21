@@ -17,6 +17,7 @@ import { eslintModule } from './modules/eslint';
 import { vitestModule } from './modules/vitest';
 import { dockerModule } from './modules/docker';
 import { debug } from '../../utils/debug';
+import { emailModule } from './modules/email';
 
 export class NuxtFramework extends BaseFramework {
   id = 'nuxt';
@@ -29,6 +30,7 @@ export class NuxtFramework extends BaseFramework {
     prismaModule,
     supabaseModule,
     betterAuthModule,
+    emailModule,
     stripeModule,
     piniaModule,
     nuxtUiModule,

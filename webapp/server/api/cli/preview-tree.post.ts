@@ -63,7 +63,13 @@ export default defineEventHandler(async (event) => {
     let mergedChildren = baseTree.children || [];
 
     if (modules.length > 0) {
-      const moduleKeys = modules.map(m => CACHE_KEYS.MODULE_TREE(body.framework, m));
+      // Module IDs from DB are composite (e.g. "nextjs-better-auth")
+      // but Redis cache uses simple IDs (e.g. "better-auth")
+      const stripFrameworkPrefix = (moduleId: string) => {
+        const prefix = body.framework + '-';
+        return moduleId.startsWith(prefix) ? moduleId.slice(prefix.length) : moduleId;
+      };
+      const moduleKeys = modules.map(m => CACHE_KEYS.MODULE_TREE(body.framework, stripFrameworkPrefix(m)));
       const modulesData = await redis.mget(...moduleKeys);
 
       for (const moduleData of modulesData) {

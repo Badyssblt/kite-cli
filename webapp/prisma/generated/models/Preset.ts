@@ -47,6 +47,7 @@ export type PresetCountAggregateOutputType = {
   name: number
   description: number
   image: number
+  answers: number
   createdAt: number
   updatedAt: number
   _all: number
@@ -76,6 +77,7 @@ export type PresetCountAggregateInputType = {
   name?: true
   description?: true
   image?: true
+  answers?: true
   createdAt?: true
   updatedAt?: true
   _all?: true
@@ -158,6 +160,7 @@ export type PresetGroupByOutputType = {
   name: string
   description: string | null
   image: string | null
+  answers: runtime.JsonValue | null
   createdAt: Date
   updatedAt: Date
   _count: PresetCountAggregateOutputType | null
@@ -188,6 +191,7 @@ export type PresetWhereInput = {
   name?: Prisma.StringFilter<"Preset"> | string
   description?: Prisma.StringNullableFilter<"Preset"> | string | null
   image?: Prisma.StringNullableFilter<"Preset"> | string | null
+  answers?: Prisma.JsonNullableFilter<"Preset">
   createdAt?: Prisma.DateTimeFilter<"Preset"> | Date | string
   updatedAt?: Prisma.DateTimeFilter<"Preset"> | Date | string
   frameworks?: Prisma.PresetFrameworkListRelationFilter
@@ -199,6 +203,7 @@ export type PresetOrderByWithRelationInput = {
   name?: Prisma.SortOrder
   description?: Prisma.SortOrderInput | Prisma.SortOrder
   image?: Prisma.SortOrderInput | Prisma.SortOrder
+  answers?: Prisma.SortOrderInput | Prisma.SortOrder
   createdAt?: Prisma.SortOrder
   updatedAt?: Prisma.SortOrder
   frameworks?: Prisma.PresetFrameworkOrderByRelationAggregateInput
@@ -214,6 +219,7 @@ export type PresetWhereUniqueInput = Prisma.AtLeast<{
   name?: Prisma.StringFilter<"Preset"> | string
   description?: Prisma.StringNullableFilter<"Preset"> | string | null
   image?: Prisma.StringNullableFilter<"Preset"> | string | null
+  answers?: Prisma.JsonNullableFilter<"Preset">
   createdAt?: Prisma.DateTimeFilter<"Preset"> | Date | string
   updatedAt?: Prisma.DateTimeFilter<"Preset"> | Date | string
   frameworks?: Prisma.PresetFrameworkListRelationFilter
@@ -225,6 +231,7 @@ export type PresetOrderByWithAggregationInput = {
   name?: Prisma.SortOrder
   description?: Prisma.SortOrderInput | Prisma.SortOrder
   image?: Prisma.SortOrderInput | Prisma.SortOrder
+  answers?: Prisma.SortOrderInput | Prisma.SortOrder
   createdAt?: Prisma.SortOrder
   updatedAt?: Prisma.SortOrder
   _count?: Prisma.PresetCountOrderByAggregateInput
@@ -240,6 +247,7 @@ export type PresetScalarWhereWithAggregatesInput = {
   name?: Prisma.StringWithAggregatesFilter<"Preset"> | string
   description?: Prisma.StringNullableWithAggregatesFilter<"Preset"> | string | null
   image?: Prisma.StringNullableWithAggregatesFilter<"Preset"> | string | null
+  answers?: Prisma.JsonNullableWithAggregatesFilter<"Preset">
   createdAt?: Prisma.DateTimeWithAggregatesFilter<"Preset"> | Date | string
   updatedAt?: Prisma.DateTimeWithAggregatesFilter<"Preset"> | Date | string
 }
@@ -249,6 +257,7 @@ export type PresetCreateInput = {
   name: string
   description?: string | null
   image?: string | null
+  answers?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
   createdAt?: Date | string
   updatedAt?: Date | string
   frameworks?: Prisma.PresetFrameworkCreateNestedManyWithoutPresetInput
@@ -260,6 +269,7 @@ export type PresetUncheckedCreateInput = {
   name: string
   description?: string | null
   image?: string | null
+  answers?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
   createdAt?: Date | string
   updatedAt?: Date | string
   frameworks?: Prisma.PresetFrameworkUncheckedCreateNestedManyWithoutPresetInput
@@ -271,6 +281,7 @@ export type PresetUpdateInput = {
   name?: Prisma.StringFieldUpdateOperationsInput | string
   description?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   image?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  answers?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   frameworks?: Prisma.PresetFrameworkUpdateManyWithoutPresetNestedInput
@@ -282,6 +293,7 @@ export type PresetUncheckedUpdateInput = {
   name?: Prisma.StringFieldUpdateOperationsInput | string
   description?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   image?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  answers?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   frameworks?: Prisma.PresetFrameworkUncheckedUpdateManyWithoutPresetNestedInput
@@ -293,6 +305,7 @@ export type PresetCreateManyInput = {
   name: string
   description?: string | null
   image?: string | null
+  answers?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
   createdAt?: Date | string
   updatedAt?: Date | string
 }
@@ -302,6 +315,7 @@ export type PresetUpdateManyMutationInput = {
   name?: Prisma.StringFieldUpdateOperationsInput | string
   description?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   image?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  answers?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
 }
@@ -311,6 +325,7 @@ export type PresetUncheckedUpdateManyInput = {
   name?: Prisma.StringFieldUpdateOperationsInput | string
   description?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   image?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  answers?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
 }
@@ -326,6 +341,7 @@ export type PresetCountOrderByAggregateInput = {
   name?: Prisma.SortOrder
   description?: Prisma.SortOrder
   image?: Prisma.SortOrder
+  answers?: Prisma.SortOrder
   createdAt?: Prisma.SortOrder
   updatedAt?: Prisma.SortOrder
 }
@@ -386,6 +402,7 @@ export type PresetCreateWithoutFrameworksInput = {
   name: string
   description?: string | null
   image?: string | null
+  answers?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
   createdAt?: Date | string
   updatedAt?: Date | string
   modules?: Prisma.PresetModuleCreateNestedManyWithoutPresetInput
@@ -396,6 +413,7 @@ export type PresetUncheckedCreateWithoutFrameworksInput = {
   name: string
   description?: string | null
   image?: string | null
+  answers?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
   createdAt?: Date | string
   updatedAt?: Date | string
   modules?: Prisma.PresetModuleUncheckedCreateNestedManyWithoutPresetInput
@@ -422,6 +440,7 @@ export type PresetUpdateWithoutFrameworksInput = {
   name?: Prisma.StringFieldUpdateOperationsInput | string
   description?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   image?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  answers?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   modules?: Prisma.PresetModuleUpdateManyWithoutPresetNestedInput
@@ -432,6 +451,7 @@ export type PresetUncheckedUpdateWithoutFrameworksInput = {
   name?: Prisma.StringFieldUpdateOperationsInput | string
   description?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   image?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  answers?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   modules?: Prisma.PresetModuleUncheckedUpdateManyWithoutPresetNestedInput
@@ -442,6 +462,7 @@ export type PresetCreateWithoutModulesInput = {
   name: string
   description?: string | null
   image?: string | null
+  answers?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
   createdAt?: Date | string
   updatedAt?: Date | string
   frameworks?: Prisma.PresetFrameworkCreateNestedManyWithoutPresetInput
@@ -452,6 +473,7 @@ export type PresetUncheckedCreateWithoutModulesInput = {
   name: string
   description?: string | null
   image?: string | null
+  answers?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
   createdAt?: Date | string
   updatedAt?: Date | string
   frameworks?: Prisma.PresetFrameworkUncheckedCreateNestedManyWithoutPresetInput
@@ -478,6 +500,7 @@ export type PresetUpdateWithoutModulesInput = {
   name?: Prisma.StringFieldUpdateOperationsInput | string
   description?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   image?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  answers?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   frameworks?: Prisma.PresetFrameworkUpdateManyWithoutPresetNestedInput
@@ -488,6 +511,7 @@ export type PresetUncheckedUpdateWithoutModulesInput = {
   name?: Prisma.StringFieldUpdateOperationsInput | string
   description?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   image?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  answers?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   frameworks?: Prisma.PresetFrameworkUncheckedUpdateManyWithoutPresetNestedInput
@@ -538,6 +562,7 @@ export type PresetSelect<ExtArgs extends runtime.Types.Extensions.InternalArgs =
   name?: boolean
   description?: boolean
   image?: boolean
+  answers?: boolean
   createdAt?: boolean
   updatedAt?: boolean
   frameworks?: boolean | Prisma.Preset$frameworksArgs<ExtArgs>
@@ -552,11 +577,12 @@ export type PresetSelectScalar = {
   name?: boolean
   description?: boolean
   image?: boolean
+  answers?: boolean
   createdAt?: boolean
   updatedAt?: boolean
 }
 
-export type PresetOmit<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = runtime.Types.Extensions.GetOmit<"id" | "name" | "description" | "image" | "createdAt" | "updatedAt", ExtArgs["result"]["preset"]>
+export type PresetOmit<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = runtime.Types.Extensions.GetOmit<"id" | "name" | "description" | "image" | "answers" | "createdAt" | "updatedAt", ExtArgs["result"]["preset"]>
 export type PresetInclude<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
   frameworks?: boolean | Prisma.Preset$frameworksArgs<ExtArgs>
   modules?: boolean | Prisma.Preset$modulesArgs<ExtArgs>
@@ -574,6 +600,7 @@ export type $PresetPayload<ExtArgs extends runtime.Types.Extensions.InternalArgs
     name: string
     description: string | null
     image: string | null
+    answers: runtime.JsonValue | null
     createdAt: Date
     updatedAt: Date
   }, ExtArgs["result"]["preset"]>
@@ -951,6 +978,7 @@ export interface PresetFieldRefs {
   readonly name: Prisma.FieldRef<"Preset", 'String'>
   readonly description: Prisma.FieldRef<"Preset", 'String'>
   readonly image: Prisma.FieldRef<"Preset", 'String'>
+  readonly answers: Prisma.FieldRef<"Preset", 'Json'>
   readonly createdAt: Prisma.FieldRef<"Preset", 'DateTime'>
   readonly updatedAt: Prisma.FieldRef<"Preset", 'DateTime'>
 }

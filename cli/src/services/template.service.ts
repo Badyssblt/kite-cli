@@ -16,6 +16,7 @@ import { moduleRegistry } from '../core/module-registry';
 import { PlaceholderService } from './placeholder.service';
 import { variantService, type ResolvedVariant } from './variant.service';
 import { fragmentService } from './fragment.service';
+import { resolveLatestVersions, resolveAllToLatest } from '../utils/npm-registry';
 
 export class TemplateService {
   private templatesPath: string;
@@ -101,6 +102,9 @@ export class TemplateService {
         }
       }
 
+      // Résoudre toutes les dépendances vers leurs dernières versions npm
+      await this.resolvePackageVersions(destination);
+
       return { setupScripts };
     } catch (err) {
       console.error('Erreur lors de la copie du template :', err);
@@ -163,7 +167,7 @@ export class TemplateService {
       await fs.writeFile(envPath, envContent, 'utf-8');
     }
 
-    // Ajouter les dépendances au package.json
+    // Ajouter les dépendances au package.json (résoudre "latest" en vraie version)
     const hasDependencies = Object.keys(allDependencies).length > 0;
     const hasDevDependencies = Object.keys(allDevDependencies).length > 0;
 
@@ -173,14 +177,14 @@ export class TemplateService {
       if (hasDependencies) {
         packageJson.dependencies = {
           ...packageJson.dependencies,
-          ...allDependencies
+          ...await resolveLatestVersions(allDependencies),
         };
       }
 
       if (hasDevDependencies) {
         packageJson.devDependencies = {
           ...packageJson.devDependencies,
-          ...allDevDependencies
+          ...await resolveLatestVersions(allDevDependencies),
         };
       }
 
@@ -265,8 +269,9 @@ export class TemplateService {
       } else if (file.name === framework.configFileName && (await fs.pathExists(destPath))) {
         await this.mergeConfigFile(framework, srcPath, destPath);
       } else if (file.name === 'package.json') {
-        // Ignorer package.json si le module a un install.sh (il gère les deps)
-        if (!hasInstallScript && (await fs.pathExists(destPath))) {
+        // Toujours merger package.json pour ajouter les dépendances au projet
+        // (nécessaire en mode --no-install / webapp où install.sh n'est pas exécuté)
+        if (await fs.pathExists(destPath)) {
           await this.mergeFile(srcPath, destPath, mergePackageJson);
         }
       } else if (file.name === '.env.example' && (await fs.pathExists(destPath))) {
@@ -346,6 +351,29 @@ export class TemplateService {
       dockerfile,
       'utf-8'
     );
+  }
+
+  // Résoudre toutes les dépendances du package.json vers leurs dernières versions npm
+  private async resolvePackageVersions(projectPath: string): Promise<void> {
+    const packageJsonPath = path.join(projectPath, 'package.json');
+    if (!(await fs.pathExists(packageJsonPath))) return;
+
+    const packageJson = await fs.readJson(packageJsonPath);
+    let updated = false;
+
+    if (packageJson.dependencies && Object.keys(packageJson.dependencies).length > 0) {
+      packageJson.dependencies = await resolveAllToLatest(packageJson.dependencies);
+      updated = true;
+    }
+
+    if (packageJson.devDependencies && Object.keys(packageJson.devDependencies).length > 0) {
+      packageJson.devDependencies = await resolveAllToLatest(packageJson.devDependencies);
+      updated = true;
+    }
+
+    if (updated) {
+      await fs.writeJson(packageJsonPath, packageJson, { spaces: 2 });
+    }
   }
 
   // Copier .env.example vers .env
@@ -443,6 +471,9 @@ export class TemplateService {
           );
         }
       }
+
+      // Résoudre toutes les dépendances vers leurs dernières versions npm
+      await this.resolvePackageVersions(projectPath);
 
       // Mettre à jour .env à partir de .env.example
       await this.updateEnvFromExample(projectPath);

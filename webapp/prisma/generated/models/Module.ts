@@ -28,21 +28,31 @@ export type ModuleMinAggregateOutputType = {
   id: string | null
   name: string | null
   description: string | null
+  category: string | null
   frameworkId: string | null
+  authorId: string | null
+  isCommunity: boolean | null
 }
 
 export type ModuleMaxAggregateOutputType = {
   id: string | null
   name: string | null
   description: string | null
+  category: string | null
   frameworkId: string | null
+  authorId: string | null
+  isCommunity: boolean | null
 }
 
 export type ModuleCountAggregateOutputType = {
   id: number
   name: number
   description: number
+  category: number
+  prompts: number
   frameworkId: number
+  authorId: number
+  isCommunity: number
   _all: number
 }
 
@@ -51,21 +61,31 @@ export type ModuleMinAggregateInputType = {
   id?: true
   name?: true
   description?: true
+  category?: true
   frameworkId?: true
+  authorId?: true
+  isCommunity?: true
 }
 
 export type ModuleMaxAggregateInputType = {
   id?: true
   name?: true
   description?: true
+  category?: true
   frameworkId?: true
+  authorId?: true
+  isCommunity?: true
 }
 
 export type ModuleCountAggregateInputType = {
   id?: true
   name?: true
   description?: true
+  category?: true
+  prompts?: true
   frameworkId?: true
+  authorId?: true
+  isCommunity?: true
   _all?: true
 }
 
@@ -145,7 +165,11 @@ export type ModuleGroupByOutputType = {
   id: string
   name: string
   description: string
+  category: string
+  prompts: runtime.JsonValue | null
   frameworkId: string
+  authorId: string | null
+  isCommunity: boolean
   _count: ModuleCountAggregateOutputType | null
   _min: ModuleMinAggregateOutputType | null
   _max: ModuleMaxAggregateOutputType | null
@@ -173,8 +197,17 @@ export type ModuleWhereInput = {
   id?: Prisma.StringFilter<"Module"> | string
   name?: Prisma.StringFilter<"Module"> | string
   description?: Prisma.StringFilter<"Module"> | string
+  category?: Prisma.StringFilter<"Module"> | string
+  prompts?: Prisma.JsonNullableFilter<"Module">
   frameworkId?: Prisma.StringFilter<"Module"> | string
+  authorId?: Prisma.StringNullableFilter<"Module"> | string | null
+  isCommunity?: Prisma.BoolFilter<"Module"> | boolean
   framework?: Prisma.XOR<Prisma.FrameworkScalarRelationFilter, Prisma.FrameworkWhereInput>
+  author?: Prisma.XOR<Prisma.UserNullableScalarRelationFilter, Prisma.UserWhereInput> | null
+  status?: Prisma.XOR<Prisma.ModuleStatusNullableScalarRelationFilter, Prisma.ModuleStatusWhereInput> | null
+  files?: Prisma.ModuleFileListRelationFilter
+  dependencies?: Prisma.ModuleDependencyListRelationFilter
+  envVars?: Prisma.ModuleEnvVarListRelationFilter
   projects?: Prisma.ProjectModuleListRelationFilter
   presets?: Prisma.PresetModuleListRelationFilter
 }
@@ -183,8 +216,17 @@ export type ModuleOrderByWithRelationInput = {
   id?: Prisma.SortOrder
   name?: Prisma.SortOrder
   description?: Prisma.SortOrder
+  category?: Prisma.SortOrder
+  prompts?: Prisma.SortOrderInput | Prisma.SortOrder
   frameworkId?: Prisma.SortOrder
+  authorId?: Prisma.SortOrderInput | Prisma.SortOrder
+  isCommunity?: Prisma.SortOrder
   framework?: Prisma.FrameworkOrderByWithRelationInput
+  author?: Prisma.UserOrderByWithRelationInput
+  status?: Prisma.ModuleStatusOrderByWithRelationInput
+  files?: Prisma.ModuleFileOrderByRelationAggregateInput
+  dependencies?: Prisma.ModuleDependencyOrderByRelationAggregateInput
+  envVars?: Prisma.ModuleEnvVarOrderByRelationAggregateInput
   projects?: Prisma.ProjectModuleOrderByRelationAggregateInput
   presets?: Prisma.PresetModuleOrderByRelationAggregateInput
   _relevance?: Prisma.ModuleOrderByRelevanceInput
@@ -197,8 +239,17 @@ export type ModuleWhereUniqueInput = Prisma.AtLeast<{
   NOT?: Prisma.ModuleWhereInput | Prisma.ModuleWhereInput[]
   name?: Prisma.StringFilter<"Module"> | string
   description?: Prisma.StringFilter<"Module"> | string
+  category?: Prisma.StringFilter<"Module"> | string
+  prompts?: Prisma.JsonNullableFilter<"Module">
   frameworkId?: Prisma.StringFilter<"Module"> | string
+  authorId?: Prisma.StringNullableFilter<"Module"> | string | null
+  isCommunity?: Prisma.BoolFilter<"Module"> | boolean
   framework?: Prisma.XOR<Prisma.FrameworkScalarRelationFilter, Prisma.FrameworkWhereInput>
+  author?: Prisma.XOR<Prisma.UserNullableScalarRelationFilter, Prisma.UserWhereInput> | null
+  status?: Prisma.XOR<Prisma.ModuleStatusNullableScalarRelationFilter, Prisma.ModuleStatusWhereInput> | null
+  files?: Prisma.ModuleFileListRelationFilter
+  dependencies?: Prisma.ModuleDependencyListRelationFilter
+  envVars?: Prisma.ModuleEnvVarListRelationFilter
   projects?: Prisma.ProjectModuleListRelationFilter
   presets?: Prisma.PresetModuleListRelationFilter
 }, "id">
@@ -207,7 +258,11 @@ export type ModuleOrderByWithAggregationInput = {
   id?: Prisma.SortOrder
   name?: Prisma.SortOrder
   description?: Prisma.SortOrder
+  category?: Prisma.SortOrder
+  prompts?: Prisma.SortOrderInput | Prisma.SortOrder
   frameworkId?: Prisma.SortOrder
+  authorId?: Prisma.SortOrderInput | Prisma.SortOrder
+  isCommunity?: Prisma.SortOrder
   _count?: Prisma.ModuleCountOrderByAggregateInput
   _max?: Prisma.ModuleMaxOrderByAggregateInput
   _min?: Prisma.ModuleMinOrderByAggregateInput
@@ -220,23 +275,43 @@ export type ModuleScalarWhereWithAggregatesInput = {
   id?: Prisma.StringWithAggregatesFilter<"Module"> | string
   name?: Prisma.StringWithAggregatesFilter<"Module"> | string
   description?: Prisma.StringWithAggregatesFilter<"Module"> | string
+  category?: Prisma.StringWithAggregatesFilter<"Module"> | string
+  prompts?: Prisma.JsonNullableWithAggregatesFilter<"Module">
   frameworkId?: Prisma.StringWithAggregatesFilter<"Module"> | string
+  authorId?: Prisma.StringNullableWithAggregatesFilter<"Module"> | string | null
+  isCommunity?: Prisma.BoolWithAggregatesFilter<"Module"> | boolean
 }
 
 export type ModuleCreateInput = {
-  id: string
+  id?: string
   name: string
   description: string
+  category?: string
+  prompts?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
+  isCommunity?: boolean
   framework: Prisma.FrameworkCreateNestedOneWithoutModulesInput
+  author?: Prisma.UserCreateNestedOneWithoutModulesInput
+  status?: Prisma.ModuleStatusCreateNestedOneWithoutModuleInput
+  files?: Prisma.ModuleFileCreateNestedManyWithoutModuleInput
+  dependencies?: Prisma.ModuleDependencyCreateNestedManyWithoutModuleInput
+  envVars?: Prisma.ModuleEnvVarCreateNestedManyWithoutModuleInput
   projects?: Prisma.ProjectModuleCreateNestedManyWithoutModuleInput
   presets?: Prisma.PresetModuleCreateNestedManyWithoutModuleInput
 }
 
 export type ModuleUncheckedCreateInput = {
-  id: string
+  id?: string
   name: string
   description: string
+  category?: string
+  prompts?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
   frameworkId: string
+  authorId?: string | null
+  isCommunity?: boolean
+  status?: Prisma.ModuleStatusUncheckedCreateNestedOneWithoutModuleInput
+  files?: Prisma.ModuleFileUncheckedCreateNestedManyWithoutModuleInput
+  dependencies?: Prisma.ModuleDependencyUncheckedCreateNestedManyWithoutModuleInput
+  envVars?: Prisma.ModuleEnvVarUncheckedCreateNestedManyWithoutModuleInput
   projects?: Prisma.ProjectModuleUncheckedCreateNestedManyWithoutModuleInput
   presets?: Prisma.PresetModuleUncheckedCreateNestedManyWithoutModuleInput
 }
@@ -245,7 +320,15 @@ export type ModuleUpdateInput = {
   id?: Prisma.StringFieldUpdateOperationsInput | string
   name?: Prisma.StringFieldUpdateOperationsInput | string
   description?: Prisma.StringFieldUpdateOperationsInput | string
+  category?: Prisma.StringFieldUpdateOperationsInput | string
+  prompts?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
+  isCommunity?: Prisma.BoolFieldUpdateOperationsInput | boolean
   framework?: Prisma.FrameworkUpdateOneRequiredWithoutModulesNestedInput
+  author?: Prisma.UserUpdateOneWithoutModulesNestedInput
+  status?: Prisma.ModuleStatusUpdateOneWithoutModuleNestedInput
+  files?: Prisma.ModuleFileUpdateManyWithoutModuleNestedInput
+  dependencies?: Prisma.ModuleDependencyUpdateManyWithoutModuleNestedInput
+  envVars?: Prisma.ModuleEnvVarUpdateManyWithoutModuleNestedInput
   projects?: Prisma.ProjectModuleUpdateManyWithoutModuleNestedInput
   presets?: Prisma.PresetModuleUpdateManyWithoutModuleNestedInput
 }
@@ -254,29 +337,48 @@ export type ModuleUncheckedUpdateInput = {
   id?: Prisma.StringFieldUpdateOperationsInput | string
   name?: Prisma.StringFieldUpdateOperationsInput | string
   description?: Prisma.StringFieldUpdateOperationsInput | string
+  category?: Prisma.StringFieldUpdateOperationsInput | string
+  prompts?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
   frameworkId?: Prisma.StringFieldUpdateOperationsInput | string
+  authorId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  isCommunity?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  status?: Prisma.ModuleStatusUncheckedUpdateOneWithoutModuleNestedInput
+  files?: Prisma.ModuleFileUncheckedUpdateManyWithoutModuleNestedInput
+  dependencies?: Prisma.ModuleDependencyUncheckedUpdateManyWithoutModuleNestedInput
+  envVars?: Prisma.ModuleEnvVarUncheckedUpdateManyWithoutModuleNestedInput
   projects?: Prisma.ProjectModuleUncheckedUpdateManyWithoutModuleNestedInput
   presets?: Prisma.PresetModuleUncheckedUpdateManyWithoutModuleNestedInput
 }
 
 export type ModuleCreateManyInput = {
-  id: string
+  id?: string
   name: string
   description: string
+  category?: string
+  prompts?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
   frameworkId: string
+  authorId?: string | null
+  isCommunity?: boolean
 }
 
 export type ModuleUpdateManyMutationInput = {
   id?: Prisma.StringFieldUpdateOperationsInput | string
   name?: Prisma.StringFieldUpdateOperationsInput | string
   description?: Prisma.StringFieldUpdateOperationsInput | string
+  category?: Prisma.StringFieldUpdateOperationsInput | string
+  prompts?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
+  isCommunity?: Prisma.BoolFieldUpdateOperationsInput | boolean
 }
 
 export type ModuleUncheckedUpdateManyInput = {
   id?: Prisma.StringFieldUpdateOperationsInput | string
   name?: Prisma.StringFieldUpdateOperationsInput | string
   description?: Prisma.StringFieldUpdateOperationsInput | string
+  category?: Prisma.StringFieldUpdateOperationsInput | string
+  prompts?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
   frameworkId?: Prisma.StringFieldUpdateOperationsInput | string
+  authorId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  isCommunity?: Prisma.BoolFieldUpdateOperationsInput | boolean
 }
 
 export type ModuleListRelationFilter = {
@@ -299,21 +401,31 @@ export type ModuleCountOrderByAggregateInput = {
   id?: Prisma.SortOrder
   name?: Prisma.SortOrder
   description?: Prisma.SortOrder
+  category?: Prisma.SortOrder
+  prompts?: Prisma.SortOrder
   frameworkId?: Prisma.SortOrder
+  authorId?: Prisma.SortOrder
+  isCommunity?: Prisma.SortOrder
 }
 
 export type ModuleMaxOrderByAggregateInput = {
   id?: Prisma.SortOrder
   name?: Prisma.SortOrder
   description?: Prisma.SortOrder
+  category?: Prisma.SortOrder
   frameworkId?: Prisma.SortOrder
+  authorId?: Prisma.SortOrder
+  isCommunity?: Prisma.SortOrder
 }
 
 export type ModuleMinOrderByAggregateInput = {
   id?: Prisma.SortOrder
   name?: Prisma.SortOrder
   description?: Prisma.SortOrder
+  category?: Prisma.SortOrder
   frameworkId?: Prisma.SortOrder
+  authorId?: Prisma.SortOrder
+  isCommunity?: Prisma.SortOrder
 }
 
 export type ModuleScalarRelationFilter = {
@@ -363,6 +475,70 @@ export type ModuleUncheckedUpdateManyWithoutFrameworkNestedInput = {
   deleteMany?: Prisma.ModuleScalarWhereInput | Prisma.ModuleScalarWhereInput[]
 }
 
+export type BoolFieldUpdateOperationsInput = {
+  set?: boolean
+}
+
+export type NullableStringFieldUpdateOperationsInput = {
+  set?: string | null
+}
+
+export type ModuleCreateNestedOneWithoutStatusInput = {
+  create?: Prisma.XOR<Prisma.ModuleCreateWithoutStatusInput, Prisma.ModuleUncheckedCreateWithoutStatusInput>
+  connectOrCreate?: Prisma.ModuleCreateOrConnectWithoutStatusInput
+  connect?: Prisma.ModuleWhereUniqueInput
+}
+
+export type ModuleUpdateOneRequiredWithoutStatusNestedInput = {
+  create?: Prisma.XOR<Prisma.ModuleCreateWithoutStatusInput, Prisma.ModuleUncheckedCreateWithoutStatusInput>
+  connectOrCreate?: Prisma.ModuleCreateOrConnectWithoutStatusInput
+  upsert?: Prisma.ModuleUpsertWithoutStatusInput
+  connect?: Prisma.ModuleWhereUniqueInput
+  update?: Prisma.XOR<Prisma.XOR<Prisma.ModuleUpdateToOneWithWhereWithoutStatusInput, Prisma.ModuleUpdateWithoutStatusInput>, Prisma.ModuleUncheckedUpdateWithoutStatusInput>
+}
+
+export type ModuleCreateNestedOneWithoutFilesInput = {
+  create?: Prisma.XOR<Prisma.ModuleCreateWithoutFilesInput, Prisma.ModuleUncheckedCreateWithoutFilesInput>
+  connectOrCreate?: Prisma.ModuleCreateOrConnectWithoutFilesInput
+  connect?: Prisma.ModuleWhereUniqueInput
+}
+
+export type ModuleUpdateOneRequiredWithoutFilesNestedInput = {
+  create?: Prisma.XOR<Prisma.ModuleCreateWithoutFilesInput, Prisma.ModuleUncheckedCreateWithoutFilesInput>
+  connectOrCreate?: Prisma.ModuleCreateOrConnectWithoutFilesInput
+  upsert?: Prisma.ModuleUpsertWithoutFilesInput
+  connect?: Prisma.ModuleWhereUniqueInput
+  update?: Prisma.XOR<Prisma.XOR<Prisma.ModuleUpdateToOneWithWhereWithoutFilesInput, Prisma.ModuleUpdateWithoutFilesInput>, Prisma.ModuleUncheckedUpdateWithoutFilesInput>
+}
+
+export type ModuleCreateNestedOneWithoutDependenciesInput = {
+  create?: Prisma.XOR<Prisma.ModuleCreateWithoutDependenciesInput, Prisma.ModuleUncheckedCreateWithoutDependenciesInput>
+  connectOrCreate?: Prisma.ModuleCreateOrConnectWithoutDependenciesInput
+  connect?: Prisma.ModuleWhereUniqueInput
+}
+
+export type ModuleUpdateOneRequiredWithoutDependenciesNestedInput = {
+  create?: Prisma.XOR<Prisma.ModuleCreateWithoutDependenciesInput, Prisma.ModuleUncheckedCreateWithoutDependenciesInput>
+  connectOrCreate?: Prisma.ModuleCreateOrConnectWithoutDependenciesInput
+  upsert?: Prisma.ModuleUpsertWithoutDependenciesInput
+  connect?: Prisma.ModuleWhereUniqueInput
+  update?: Prisma.XOR<Prisma.XOR<Prisma.ModuleUpdateToOneWithWhereWithoutDependenciesInput, Prisma.ModuleUpdateWithoutDependenciesInput>, Prisma.ModuleUncheckedUpdateWithoutDependenciesInput>
+}
+
+export type ModuleCreateNestedOneWithoutEnvVarsInput = {
+  create?: Prisma.XOR<Prisma.ModuleCreateWithoutEnvVarsInput, Prisma.ModuleUncheckedCreateWithoutEnvVarsInput>
+  connectOrCreate?: Prisma.ModuleCreateOrConnectWithoutEnvVarsInput
+  connect?: Prisma.ModuleWhereUniqueInput
+}
+
+export type ModuleUpdateOneRequiredWithoutEnvVarsNestedInput = {
+  create?: Prisma.XOR<Prisma.ModuleCreateWithoutEnvVarsInput, Prisma.ModuleUncheckedCreateWithoutEnvVarsInput>
+  connectOrCreate?: Prisma.ModuleCreateOrConnectWithoutEnvVarsInput
+  upsert?: Prisma.ModuleUpsertWithoutEnvVarsInput
+  connect?: Prisma.ModuleWhereUniqueInput
+  update?: Prisma.XOR<Prisma.XOR<Prisma.ModuleUpdateToOneWithWhereWithoutEnvVarsInput, Prisma.ModuleUpdateWithoutEnvVarsInput>, Prisma.ModuleUncheckedUpdateWithoutEnvVarsInput>
+}
+
 export type ModuleCreateNestedOneWithoutProjectsInput = {
   create?: Prisma.XOR<Prisma.ModuleCreateWithoutProjectsInput, Prisma.ModuleUncheckedCreateWithoutProjectsInput>
   connectOrCreate?: Prisma.ModuleCreateOrConnectWithoutProjectsInput
@@ -375,6 +551,48 @@ export type ModuleUpdateOneRequiredWithoutProjectsNestedInput = {
   upsert?: Prisma.ModuleUpsertWithoutProjectsInput
   connect?: Prisma.ModuleWhereUniqueInput
   update?: Prisma.XOR<Prisma.XOR<Prisma.ModuleUpdateToOneWithWhereWithoutProjectsInput, Prisma.ModuleUpdateWithoutProjectsInput>, Prisma.ModuleUncheckedUpdateWithoutProjectsInput>
+}
+
+export type ModuleCreateNestedManyWithoutAuthorInput = {
+  create?: Prisma.XOR<Prisma.ModuleCreateWithoutAuthorInput, Prisma.ModuleUncheckedCreateWithoutAuthorInput> | Prisma.ModuleCreateWithoutAuthorInput[] | Prisma.ModuleUncheckedCreateWithoutAuthorInput[]
+  connectOrCreate?: Prisma.ModuleCreateOrConnectWithoutAuthorInput | Prisma.ModuleCreateOrConnectWithoutAuthorInput[]
+  createMany?: Prisma.ModuleCreateManyAuthorInputEnvelope
+  connect?: Prisma.ModuleWhereUniqueInput | Prisma.ModuleWhereUniqueInput[]
+}
+
+export type ModuleUncheckedCreateNestedManyWithoutAuthorInput = {
+  create?: Prisma.XOR<Prisma.ModuleCreateWithoutAuthorInput, Prisma.ModuleUncheckedCreateWithoutAuthorInput> | Prisma.ModuleCreateWithoutAuthorInput[] | Prisma.ModuleUncheckedCreateWithoutAuthorInput[]
+  connectOrCreate?: Prisma.ModuleCreateOrConnectWithoutAuthorInput | Prisma.ModuleCreateOrConnectWithoutAuthorInput[]
+  createMany?: Prisma.ModuleCreateManyAuthorInputEnvelope
+  connect?: Prisma.ModuleWhereUniqueInput | Prisma.ModuleWhereUniqueInput[]
+}
+
+export type ModuleUpdateManyWithoutAuthorNestedInput = {
+  create?: Prisma.XOR<Prisma.ModuleCreateWithoutAuthorInput, Prisma.ModuleUncheckedCreateWithoutAuthorInput> | Prisma.ModuleCreateWithoutAuthorInput[] | Prisma.ModuleUncheckedCreateWithoutAuthorInput[]
+  connectOrCreate?: Prisma.ModuleCreateOrConnectWithoutAuthorInput | Prisma.ModuleCreateOrConnectWithoutAuthorInput[]
+  upsert?: Prisma.ModuleUpsertWithWhereUniqueWithoutAuthorInput | Prisma.ModuleUpsertWithWhereUniqueWithoutAuthorInput[]
+  createMany?: Prisma.ModuleCreateManyAuthorInputEnvelope
+  set?: Prisma.ModuleWhereUniqueInput | Prisma.ModuleWhereUniqueInput[]
+  disconnect?: Prisma.ModuleWhereUniqueInput | Prisma.ModuleWhereUniqueInput[]
+  delete?: Prisma.ModuleWhereUniqueInput | Prisma.ModuleWhereUniqueInput[]
+  connect?: Prisma.ModuleWhereUniqueInput | Prisma.ModuleWhereUniqueInput[]
+  update?: Prisma.ModuleUpdateWithWhereUniqueWithoutAuthorInput | Prisma.ModuleUpdateWithWhereUniqueWithoutAuthorInput[]
+  updateMany?: Prisma.ModuleUpdateManyWithWhereWithoutAuthorInput | Prisma.ModuleUpdateManyWithWhereWithoutAuthorInput[]
+  deleteMany?: Prisma.ModuleScalarWhereInput | Prisma.ModuleScalarWhereInput[]
+}
+
+export type ModuleUncheckedUpdateManyWithoutAuthorNestedInput = {
+  create?: Prisma.XOR<Prisma.ModuleCreateWithoutAuthorInput, Prisma.ModuleUncheckedCreateWithoutAuthorInput> | Prisma.ModuleCreateWithoutAuthorInput[] | Prisma.ModuleUncheckedCreateWithoutAuthorInput[]
+  connectOrCreate?: Prisma.ModuleCreateOrConnectWithoutAuthorInput | Prisma.ModuleCreateOrConnectWithoutAuthorInput[]
+  upsert?: Prisma.ModuleUpsertWithWhereUniqueWithoutAuthorInput | Prisma.ModuleUpsertWithWhereUniqueWithoutAuthorInput[]
+  createMany?: Prisma.ModuleCreateManyAuthorInputEnvelope
+  set?: Prisma.ModuleWhereUniqueInput | Prisma.ModuleWhereUniqueInput[]
+  disconnect?: Prisma.ModuleWhereUniqueInput | Prisma.ModuleWhereUniqueInput[]
+  delete?: Prisma.ModuleWhereUniqueInput | Prisma.ModuleWhereUniqueInput[]
+  connect?: Prisma.ModuleWhereUniqueInput | Prisma.ModuleWhereUniqueInput[]
+  update?: Prisma.ModuleUpdateWithWhereUniqueWithoutAuthorInput | Prisma.ModuleUpdateWithWhereUniqueWithoutAuthorInput[]
+  updateMany?: Prisma.ModuleUpdateManyWithWhereWithoutAuthorInput | Prisma.ModuleUpdateManyWithWhereWithoutAuthorInput[]
+  deleteMany?: Prisma.ModuleScalarWhereInput | Prisma.ModuleScalarWhereInput[]
 }
 
 export type ModuleCreateNestedOneWithoutPresetsInput = {
@@ -392,17 +610,33 @@ export type ModuleUpdateOneRequiredWithoutPresetsNestedInput = {
 }
 
 export type ModuleCreateWithoutFrameworkInput = {
-  id: string
+  id?: string
   name: string
   description: string
+  category?: string
+  prompts?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
+  isCommunity?: boolean
+  author?: Prisma.UserCreateNestedOneWithoutModulesInput
+  status?: Prisma.ModuleStatusCreateNestedOneWithoutModuleInput
+  files?: Prisma.ModuleFileCreateNestedManyWithoutModuleInput
+  dependencies?: Prisma.ModuleDependencyCreateNestedManyWithoutModuleInput
+  envVars?: Prisma.ModuleEnvVarCreateNestedManyWithoutModuleInput
   projects?: Prisma.ProjectModuleCreateNestedManyWithoutModuleInput
   presets?: Prisma.PresetModuleCreateNestedManyWithoutModuleInput
 }
 
 export type ModuleUncheckedCreateWithoutFrameworkInput = {
-  id: string
+  id?: string
   name: string
   description: string
+  category?: string
+  prompts?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
+  authorId?: string | null
+  isCommunity?: boolean
+  status?: Prisma.ModuleStatusUncheckedCreateNestedOneWithoutModuleInput
+  files?: Prisma.ModuleFileUncheckedCreateNestedManyWithoutModuleInput
+  dependencies?: Prisma.ModuleDependencyUncheckedCreateNestedManyWithoutModuleInput
+  envVars?: Prisma.ModuleEnvVarUncheckedCreateNestedManyWithoutModuleInput
   projects?: Prisma.ProjectModuleUncheckedCreateNestedManyWithoutModuleInput
   presets?: Prisma.PresetModuleUncheckedCreateNestedManyWithoutModuleInput
 }
@@ -440,22 +674,362 @@ export type ModuleScalarWhereInput = {
   id?: Prisma.StringFilter<"Module"> | string
   name?: Prisma.StringFilter<"Module"> | string
   description?: Prisma.StringFilter<"Module"> | string
+  category?: Prisma.StringFilter<"Module"> | string
+  prompts?: Prisma.JsonNullableFilter<"Module">
   frameworkId?: Prisma.StringFilter<"Module"> | string
+  authorId?: Prisma.StringNullableFilter<"Module"> | string | null
+  isCommunity?: Prisma.BoolFilter<"Module"> | boolean
+}
+
+export type ModuleCreateWithoutStatusInput = {
+  id?: string
+  name: string
+  description: string
+  category?: string
+  prompts?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
+  isCommunity?: boolean
+  framework: Prisma.FrameworkCreateNestedOneWithoutModulesInput
+  author?: Prisma.UserCreateNestedOneWithoutModulesInput
+  files?: Prisma.ModuleFileCreateNestedManyWithoutModuleInput
+  dependencies?: Prisma.ModuleDependencyCreateNestedManyWithoutModuleInput
+  envVars?: Prisma.ModuleEnvVarCreateNestedManyWithoutModuleInput
+  projects?: Prisma.ProjectModuleCreateNestedManyWithoutModuleInput
+  presets?: Prisma.PresetModuleCreateNestedManyWithoutModuleInput
+}
+
+export type ModuleUncheckedCreateWithoutStatusInput = {
+  id?: string
+  name: string
+  description: string
+  category?: string
+  prompts?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
+  frameworkId: string
+  authorId?: string | null
+  isCommunity?: boolean
+  files?: Prisma.ModuleFileUncheckedCreateNestedManyWithoutModuleInput
+  dependencies?: Prisma.ModuleDependencyUncheckedCreateNestedManyWithoutModuleInput
+  envVars?: Prisma.ModuleEnvVarUncheckedCreateNestedManyWithoutModuleInput
+  projects?: Prisma.ProjectModuleUncheckedCreateNestedManyWithoutModuleInput
+  presets?: Prisma.PresetModuleUncheckedCreateNestedManyWithoutModuleInput
+}
+
+export type ModuleCreateOrConnectWithoutStatusInput = {
+  where: Prisma.ModuleWhereUniqueInput
+  create: Prisma.XOR<Prisma.ModuleCreateWithoutStatusInput, Prisma.ModuleUncheckedCreateWithoutStatusInput>
+}
+
+export type ModuleUpsertWithoutStatusInput = {
+  update: Prisma.XOR<Prisma.ModuleUpdateWithoutStatusInput, Prisma.ModuleUncheckedUpdateWithoutStatusInput>
+  create: Prisma.XOR<Prisma.ModuleCreateWithoutStatusInput, Prisma.ModuleUncheckedCreateWithoutStatusInput>
+  where?: Prisma.ModuleWhereInput
+}
+
+export type ModuleUpdateToOneWithWhereWithoutStatusInput = {
+  where?: Prisma.ModuleWhereInput
+  data: Prisma.XOR<Prisma.ModuleUpdateWithoutStatusInput, Prisma.ModuleUncheckedUpdateWithoutStatusInput>
+}
+
+export type ModuleUpdateWithoutStatusInput = {
+  id?: Prisma.StringFieldUpdateOperationsInput | string
+  name?: Prisma.StringFieldUpdateOperationsInput | string
+  description?: Prisma.StringFieldUpdateOperationsInput | string
+  category?: Prisma.StringFieldUpdateOperationsInput | string
+  prompts?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
+  isCommunity?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  framework?: Prisma.FrameworkUpdateOneRequiredWithoutModulesNestedInput
+  author?: Prisma.UserUpdateOneWithoutModulesNestedInput
+  files?: Prisma.ModuleFileUpdateManyWithoutModuleNestedInput
+  dependencies?: Prisma.ModuleDependencyUpdateManyWithoutModuleNestedInput
+  envVars?: Prisma.ModuleEnvVarUpdateManyWithoutModuleNestedInput
+  projects?: Prisma.ProjectModuleUpdateManyWithoutModuleNestedInput
+  presets?: Prisma.PresetModuleUpdateManyWithoutModuleNestedInput
+}
+
+export type ModuleUncheckedUpdateWithoutStatusInput = {
+  id?: Prisma.StringFieldUpdateOperationsInput | string
+  name?: Prisma.StringFieldUpdateOperationsInput | string
+  description?: Prisma.StringFieldUpdateOperationsInput | string
+  category?: Prisma.StringFieldUpdateOperationsInput | string
+  prompts?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
+  frameworkId?: Prisma.StringFieldUpdateOperationsInput | string
+  authorId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  isCommunity?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  files?: Prisma.ModuleFileUncheckedUpdateManyWithoutModuleNestedInput
+  dependencies?: Prisma.ModuleDependencyUncheckedUpdateManyWithoutModuleNestedInput
+  envVars?: Prisma.ModuleEnvVarUncheckedUpdateManyWithoutModuleNestedInput
+  projects?: Prisma.ProjectModuleUncheckedUpdateManyWithoutModuleNestedInput
+  presets?: Prisma.PresetModuleUncheckedUpdateManyWithoutModuleNestedInput
+}
+
+export type ModuleCreateWithoutFilesInput = {
+  id?: string
+  name: string
+  description: string
+  category?: string
+  prompts?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
+  isCommunity?: boolean
+  framework: Prisma.FrameworkCreateNestedOneWithoutModulesInput
+  author?: Prisma.UserCreateNestedOneWithoutModulesInput
+  status?: Prisma.ModuleStatusCreateNestedOneWithoutModuleInput
+  dependencies?: Prisma.ModuleDependencyCreateNestedManyWithoutModuleInput
+  envVars?: Prisma.ModuleEnvVarCreateNestedManyWithoutModuleInput
+  projects?: Prisma.ProjectModuleCreateNestedManyWithoutModuleInput
+  presets?: Prisma.PresetModuleCreateNestedManyWithoutModuleInput
+}
+
+export type ModuleUncheckedCreateWithoutFilesInput = {
+  id?: string
+  name: string
+  description: string
+  category?: string
+  prompts?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
+  frameworkId: string
+  authorId?: string | null
+  isCommunity?: boolean
+  status?: Prisma.ModuleStatusUncheckedCreateNestedOneWithoutModuleInput
+  dependencies?: Prisma.ModuleDependencyUncheckedCreateNestedManyWithoutModuleInput
+  envVars?: Prisma.ModuleEnvVarUncheckedCreateNestedManyWithoutModuleInput
+  projects?: Prisma.ProjectModuleUncheckedCreateNestedManyWithoutModuleInput
+  presets?: Prisma.PresetModuleUncheckedCreateNestedManyWithoutModuleInput
+}
+
+export type ModuleCreateOrConnectWithoutFilesInput = {
+  where: Prisma.ModuleWhereUniqueInput
+  create: Prisma.XOR<Prisma.ModuleCreateWithoutFilesInput, Prisma.ModuleUncheckedCreateWithoutFilesInput>
+}
+
+export type ModuleUpsertWithoutFilesInput = {
+  update: Prisma.XOR<Prisma.ModuleUpdateWithoutFilesInput, Prisma.ModuleUncheckedUpdateWithoutFilesInput>
+  create: Prisma.XOR<Prisma.ModuleCreateWithoutFilesInput, Prisma.ModuleUncheckedCreateWithoutFilesInput>
+  where?: Prisma.ModuleWhereInput
+}
+
+export type ModuleUpdateToOneWithWhereWithoutFilesInput = {
+  where?: Prisma.ModuleWhereInput
+  data: Prisma.XOR<Prisma.ModuleUpdateWithoutFilesInput, Prisma.ModuleUncheckedUpdateWithoutFilesInput>
+}
+
+export type ModuleUpdateWithoutFilesInput = {
+  id?: Prisma.StringFieldUpdateOperationsInput | string
+  name?: Prisma.StringFieldUpdateOperationsInput | string
+  description?: Prisma.StringFieldUpdateOperationsInput | string
+  category?: Prisma.StringFieldUpdateOperationsInput | string
+  prompts?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
+  isCommunity?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  framework?: Prisma.FrameworkUpdateOneRequiredWithoutModulesNestedInput
+  author?: Prisma.UserUpdateOneWithoutModulesNestedInput
+  status?: Prisma.ModuleStatusUpdateOneWithoutModuleNestedInput
+  dependencies?: Prisma.ModuleDependencyUpdateManyWithoutModuleNestedInput
+  envVars?: Prisma.ModuleEnvVarUpdateManyWithoutModuleNestedInput
+  projects?: Prisma.ProjectModuleUpdateManyWithoutModuleNestedInput
+  presets?: Prisma.PresetModuleUpdateManyWithoutModuleNestedInput
+}
+
+export type ModuleUncheckedUpdateWithoutFilesInput = {
+  id?: Prisma.StringFieldUpdateOperationsInput | string
+  name?: Prisma.StringFieldUpdateOperationsInput | string
+  description?: Prisma.StringFieldUpdateOperationsInput | string
+  category?: Prisma.StringFieldUpdateOperationsInput | string
+  prompts?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
+  frameworkId?: Prisma.StringFieldUpdateOperationsInput | string
+  authorId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  isCommunity?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  status?: Prisma.ModuleStatusUncheckedUpdateOneWithoutModuleNestedInput
+  dependencies?: Prisma.ModuleDependencyUncheckedUpdateManyWithoutModuleNestedInput
+  envVars?: Prisma.ModuleEnvVarUncheckedUpdateManyWithoutModuleNestedInput
+  projects?: Prisma.ProjectModuleUncheckedUpdateManyWithoutModuleNestedInput
+  presets?: Prisma.PresetModuleUncheckedUpdateManyWithoutModuleNestedInput
+}
+
+export type ModuleCreateWithoutDependenciesInput = {
+  id?: string
+  name: string
+  description: string
+  category?: string
+  prompts?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
+  isCommunity?: boolean
+  framework: Prisma.FrameworkCreateNestedOneWithoutModulesInput
+  author?: Prisma.UserCreateNestedOneWithoutModulesInput
+  status?: Prisma.ModuleStatusCreateNestedOneWithoutModuleInput
+  files?: Prisma.ModuleFileCreateNestedManyWithoutModuleInput
+  envVars?: Prisma.ModuleEnvVarCreateNestedManyWithoutModuleInput
+  projects?: Prisma.ProjectModuleCreateNestedManyWithoutModuleInput
+  presets?: Prisma.PresetModuleCreateNestedManyWithoutModuleInput
+}
+
+export type ModuleUncheckedCreateWithoutDependenciesInput = {
+  id?: string
+  name: string
+  description: string
+  category?: string
+  prompts?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
+  frameworkId: string
+  authorId?: string | null
+  isCommunity?: boolean
+  status?: Prisma.ModuleStatusUncheckedCreateNestedOneWithoutModuleInput
+  files?: Prisma.ModuleFileUncheckedCreateNestedManyWithoutModuleInput
+  envVars?: Prisma.ModuleEnvVarUncheckedCreateNestedManyWithoutModuleInput
+  projects?: Prisma.ProjectModuleUncheckedCreateNestedManyWithoutModuleInput
+  presets?: Prisma.PresetModuleUncheckedCreateNestedManyWithoutModuleInput
+}
+
+export type ModuleCreateOrConnectWithoutDependenciesInput = {
+  where: Prisma.ModuleWhereUniqueInput
+  create: Prisma.XOR<Prisma.ModuleCreateWithoutDependenciesInput, Prisma.ModuleUncheckedCreateWithoutDependenciesInput>
+}
+
+export type ModuleUpsertWithoutDependenciesInput = {
+  update: Prisma.XOR<Prisma.ModuleUpdateWithoutDependenciesInput, Prisma.ModuleUncheckedUpdateWithoutDependenciesInput>
+  create: Prisma.XOR<Prisma.ModuleCreateWithoutDependenciesInput, Prisma.ModuleUncheckedCreateWithoutDependenciesInput>
+  where?: Prisma.ModuleWhereInput
+}
+
+export type ModuleUpdateToOneWithWhereWithoutDependenciesInput = {
+  where?: Prisma.ModuleWhereInput
+  data: Prisma.XOR<Prisma.ModuleUpdateWithoutDependenciesInput, Prisma.ModuleUncheckedUpdateWithoutDependenciesInput>
+}
+
+export type ModuleUpdateWithoutDependenciesInput = {
+  id?: Prisma.StringFieldUpdateOperationsInput | string
+  name?: Prisma.StringFieldUpdateOperationsInput | string
+  description?: Prisma.StringFieldUpdateOperationsInput | string
+  category?: Prisma.StringFieldUpdateOperationsInput | string
+  prompts?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
+  isCommunity?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  framework?: Prisma.FrameworkUpdateOneRequiredWithoutModulesNestedInput
+  author?: Prisma.UserUpdateOneWithoutModulesNestedInput
+  status?: Prisma.ModuleStatusUpdateOneWithoutModuleNestedInput
+  files?: Prisma.ModuleFileUpdateManyWithoutModuleNestedInput
+  envVars?: Prisma.ModuleEnvVarUpdateManyWithoutModuleNestedInput
+  projects?: Prisma.ProjectModuleUpdateManyWithoutModuleNestedInput
+  presets?: Prisma.PresetModuleUpdateManyWithoutModuleNestedInput
+}
+
+export type ModuleUncheckedUpdateWithoutDependenciesInput = {
+  id?: Prisma.StringFieldUpdateOperationsInput | string
+  name?: Prisma.StringFieldUpdateOperationsInput | string
+  description?: Prisma.StringFieldUpdateOperationsInput | string
+  category?: Prisma.StringFieldUpdateOperationsInput | string
+  prompts?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
+  frameworkId?: Prisma.StringFieldUpdateOperationsInput | string
+  authorId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  isCommunity?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  status?: Prisma.ModuleStatusUncheckedUpdateOneWithoutModuleNestedInput
+  files?: Prisma.ModuleFileUncheckedUpdateManyWithoutModuleNestedInput
+  envVars?: Prisma.ModuleEnvVarUncheckedUpdateManyWithoutModuleNestedInput
+  projects?: Prisma.ProjectModuleUncheckedUpdateManyWithoutModuleNestedInput
+  presets?: Prisma.PresetModuleUncheckedUpdateManyWithoutModuleNestedInput
+}
+
+export type ModuleCreateWithoutEnvVarsInput = {
+  id?: string
+  name: string
+  description: string
+  category?: string
+  prompts?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
+  isCommunity?: boolean
+  framework: Prisma.FrameworkCreateNestedOneWithoutModulesInput
+  author?: Prisma.UserCreateNestedOneWithoutModulesInput
+  status?: Prisma.ModuleStatusCreateNestedOneWithoutModuleInput
+  files?: Prisma.ModuleFileCreateNestedManyWithoutModuleInput
+  dependencies?: Prisma.ModuleDependencyCreateNestedManyWithoutModuleInput
+  projects?: Prisma.ProjectModuleCreateNestedManyWithoutModuleInput
+  presets?: Prisma.PresetModuleCreateNestedManyWithoutModuleInput
+}
+
+export type ModuleUncheckedCreateWithoutEnvVarsInput = {
+  id?: string
+  name: string
+  description: string
+  category?: string
+  prompts?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
+  frameworkId: string
+  authorId?: string | null
+  isCommunity?: boolean
+  status?: Prisma.ModuleStatusUncheckedCreateNestedOneWithoutModuleInput
+  files?: Prisma.ModuleFileUncheckedCreateNestedManyWithoutModuleInput
+  dependencies?: Prisma.ModuleDependencyUncheckedCreateNestedManyWithoutModuleInput
+  projects?: Prisma.ProjectModuleUncheckedCreateNestedManyWithoutModuleInput
+  presets?: Prisma.PresetModuleUncheckedCreateNestedManyWithoutModuleInput
+}
+
+export type ModuleCreateOrConnectWithoutEnvVarsInput = {
+  where: Prisma.ModuleWhereUniqueInput
+  create: Prisma.XOR<Prisma.ModuleCreateWithoutEnvVarsInput, Prisma.ModuleUncheckedCreateWithoutEnvVarsInput>
+}
+
+export type ModuleUpsertWithoutEnvVarsInput = {
+  update: Prisma.XOR<Prisma.ModuleUpdateWithoutEnvVarsInput, Prisma.ModuleUncheckedUpdateWithoutEnvVarsInput>
+  create: Prisma.XOR<Prisma.ModuleCreateWithoutEnvVarsInput, Prisma.ModuleUncheckedCreateWithoutEnvVarsInput>
+  where?: Prisma.ModuleWhereInput
+}
+
+export type ModuleUpdateToOneWithWhereWithoutEnvVarsInput = {
+  where?: Prisma.ModuleWhereInput
+  data: Prisma.XOR<Prisma.ModuleUpdateWithoutEnvVarsInput, Prisma.ModuleUncheckedUpdateWithoutEnvVarsInput>
+}
+
+export type ModuleUpdateWithoutEnvVarsInput = {
+  id?: Prisma.StringFieldUpdateOperationsInput | string
+  name?: Prisma.StringFieldUpdateOperationsInput | string
+  description?: Prisma.StringFieldUpdateOperationsInput | string
+  category?: Prisma.StringFieldUpdateOperationsInput | string
+  prompts?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
+  isCommunity?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  framework?: Prisma.FrameworkUpdateOneRequiredWithoutModulesNestedInput
+  author?: Prisma.UserUpdateOneWithoutModulesNestedInput
+  status?: Prisma.ModuleStatusUpdateOneWithoutModuleNestedInput
+  files?: Prisma.ModuleFileUpdateManyWithoutModuleNestedInput
+  dependencies?: Prisma.ModuleDependencyUpdateManyWithoutModuleNestedInput
+  projects?: Prisma.ProjectModuleUpdateManyWithoutModuleNestedInput
+  presets?: Prisma.PresetModuleUpdateManyWithoutModuleNestedInput
+}
+
+export type ModuleUncheckedUpdateWithoutEnvVarsInput = {
+  id?: Prisma.StringFieldUpdateOperationsInput | string
+  name?: Prisma.StringFieldUpdateOperationsInput | string
+  description?: Prisma.StringFieldUpdateOperationsInput | string
+  category?: Prisma.StringFieldUpdateOperationsInput | string
+  prompts?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
+  frameworkId?: Prisma.StringFieldUpdateOperationsInput | string
+  authorId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  isCommunity?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  status?: Prisma.ModuleStatusUncheckedUpdateOneWithoutModuleNestedInput
+  files?: Prisma.ModuleFileUncheckedUpdateManyWithoutModuleNestedInput
+  dependencies?: Prisma.ModuleDependencyUncheckedUpdateManyWithoutModuleNestedInput
+  projects?: Prisma.ProjectModuleUncheckedUpdateManyWithoutModuleNestedInput
+  presets?: Prisma.PresetModuleUncheckedUpdateManyWithoutModuleNestedInput
 }
 
 export type ModuleCreateWithoutProjectsInput = {
-  id: string
+  id?: string
   name: string
   description: string
+  category?: string
+  prompts?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
+  isCommunity?: boolean
   framework: Prisma.FrameworkCreateNestedOneWithoutModulesInput
+  author?: Prisma.UserCreateNestedOneWithoutModulesInput
+  status?: Prisma.ModuleStatusCreateNestedOneWithoutModuleInput
+  files?: Prisma.ModuleFileCreateNestedManyWithoutModuleInput
+  dependencies?: Prisma.ModuleDependencyCreateNestedManyWithoutModuleInput
+  envVars?: Prisma.ModuleEnvVarCreateNestedManyWithoutModuleInput
   presets?: Prisma.PresetModuleCreateNestedManyWithoutModuleInput
 }
 
 export type ModuleUncheckedCreateWithoutProjectsInput = {
-  id: string
+  id?: string
   name: string
   description: string
+  category?: string
+  prompts?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
   frameworkId: string
+  authorId?: string | null
+  isCommunity?: boolean
+  status?: Prisma.ModuleStatusUncheckedCreateNestedOneWithoutModuleInput
+  files?: Prisma.ModuleFileUncheckedCreateNestedManyWithoutModuleInput
+  dependencies?: Prisma.ModuleDependencyUncheckedCreateNestedManyWithoutModuleInput
+  envVars?: Prisma.ModuleEnvVarUncheckedCreateNestedManyWithoutModuleInput
   presets?: Prisma.PresetModuleUncheckedCreateNestedManyWithoutModuleInput
 }
 
@@ -479,7 +1053,15 @@ export type ModuleUpdateWithoutProjectsInput = {
   id?: Prisma.StringFieldUpdateOperationsInput | string
   name?: Prisma.StringFieldUpdateOperationsInput | string
   description?: Prisma.StringFieldUpdateOperationsInput | string
+  category?: Prisma.StringFieldUpdateOperationsInput | string
+  prompts?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
+  isCommunity?: Prisma.BoolFieldUpdateOperationsInput | boolean
   framework?: Prisma.FrameworkUpdateOneRequiredWithoutModulesNestedInput
+  author?: Prisma.UserUpdateOneWithoutModulesNestedInput
+  status?: Prisma.ModuleStatusUpdateOneWithoutModuleNestedInput
+  files?: Prisma.ModuleFileUpdateManyWithoutModuleNestedInput
+  dependencies?: Prisma.ModuleDependencyUpdateManyWithoutModuleNestedInput
+  envVars?: Prisma.ModuleEnvVarUpdateManyWithoutModuleNestedInput
   presets?: Prisma.PresetModuleUpdateManyWithoutModuleNestedInput
 }
 
@@ -487,23 +1069,105 @@ export type ModuleUncheckedUpdateWithoutProjectsInput = {
   id?: Prisma.StringFieldUpdateOperationsInput | string
   name?: Prisma.StringFieldUpdateOperationsInput | string
   description?: Prisma.StringFieldUpdateOperationsInput | string
+  category?: Prisma.StringFieldUpdateOperationsInput | string
+  prompts?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
   frameworkId?: Prisma.StringFieldUpdateOperationsInput | string
+  authorId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  isCommunity?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  status?: Prisma.ModuleStatusUncheckedUpdateOneWithoutModuleNestedInput
+  files?: Prisma.ModuleFileUncheckedUpdateManyWithoutModuleNestedInput
+  dependencies?: Prisma.ModuleDependencyUncheckedUpdateManyWithoutModuleNestedInput
+  envVars?: Prisma.ModuleEnvVarUncheckedUpdateManyWithoutModuleNestedInput
   presets?: Prisma.PresetModuleUncheckedUpdateManyWithoutModuleNestedInput
 }
 
-export type ModuleCreateWithoutPresetsInput = {
-  id: string
+export type ModuleCreateWithoutAuthorInput = {
+  id?: string
   name: string
   description: string
+  category?: string
+  prompts?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
+  isCommunity?: boolean
   framework: Prisma.FrameworkCreateNestedOneWithoutModulesInput
+  status?: Prisma.ModuleStatusCreateNestedOneWithoutModuleInput
+  files?: Prisma.ModuleFileCreateNestedManyWithoutModuleInput
+  dependencies?: Prisma.ModuleDependencyCreateNestedManyWithoutModuleInput
+  envVars?: Prisma.ModuleEnvVarCreateNestedManyWithoutModuleInput
+  projects?: Prisma.ProjectModuleCreateNestedManyWithoutModuleInput
+  presets?: Prisma.PresetModuleCreateNestedManyWithoutModuleInput
+}
+
+export type ModuleUncheckedCreateWithoutAuthorInput = {
+  id?: string
+  name: string
+  description: string
+  category?: string
+  prompts?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
+  frameworkId: string
+  isCommunity?: boolean
+  status?: Prisma.ModuleStatusUncheckedCreateNestedOneWithoutModuleInput
+  files?: Prisma.ModuleFileUncheckedCreateNestedManyWithoutModuleInput
+  dependencies?: Prisma.ModuleDependencyUncheckedCreateNestedManyWithoutModuleInput
+  envVars?: Prisma.ModuleEnvVarUncheckedCreateNestedManyWithoutModuleInput
+  projects?: Prisma.ProjectModuleUncheckedCreateNestedManyWithoutModuleInput
+  presets?: Prisma.PresetModuleUncheckedCreateNestedManyWithoutModuleInput
+}
+
+export type ModuleCreateOrConnectWithoutAuthorInput = {
+  where: Prisma.ModuleWhereUniqueInput
+  create: Prisma.XOR<Prisma.ModuleCreateWithoutAuthorInput, Prisma.ModuleUncheckedCreateWithoutAuthorInput>
+}
+
+export type ModuleCreateManyAuthorInputEnvelope = {
+  data: Prisma.ModuleCreateManyAuthorInput | Prisma.ModuleCreateManyAuthorInput[]
+  skipDuplicates?: boolean
+}
+
+export type ModuleUpsertWithWhereUniqueWithoutAuthorInput = {
+  where: Prisma.ModuleWhereUniqueInput
+  update: Prisma.XOR<Prisma.ModuleUpdateWithoutAuthorInput, Prisma.ModuleUncheckedUpdateWithoutAuthorInput>
+  create: Prisma.XOR<Prisma.ModuleCreateWithoutAuthorInput, Prisma.ModuleUncheckedCreateWithoutAuthorInput>
+}
+
+export type ModuleUpdateWithWhereUniqueWithoutAuthorInput = {
+  where: Prisma.ModuleWhereUniqueInput
+  data: Prisma.XOR<Prisma.ModuleUpdateWithoutAuthorInput, Prisma.ModuleUncheckedUpdateWithoutAuthorInput>
+}
+
+export type ModuleUpdateManyWithWhereWithoutAuthorInput = {
+  where: Prisma.ModuleScalarWhereInput
+  data: Prisma.XOR<Prisma.ModuleUpdateManyMutationInput, Prisma.ModuleUncheckedUpdateManyWithoutAuthorInput>
+}
+
+export type ModuleCreateWithoutPresetsInput = {
+  id?: string
+  name: string
+  description: string
+  category?: string
+  prompts?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
+  isCommunity?: boolean
+  framework: Prisma.FrameworkCreateNestedOneWithoutModulesInput
+  author?: Prisma.UserCreateNestedOneWithoutModulesInput
+  status?: Prisma.ModuleStatusCreateNestedOneWithoutModuleInput
+  files?: Prisma.ModuleFileCreateNestedManyWithoutModuleInput
+  dependencies?: Prisma.ModuleDependencyCreateNestedManyWithoutModuleInput
+  envVars?: Prisma.ModuleEnvVarCreateNestedManyWithoutModuleInput
   projects?: Prisma.ProjectModuleCreateNestedManyWithoutModuleInput
 }
 
 export type ModuleUncheckedCreateWithoutPresetsInput = {
-  id: string
+  id?: string
   name: string
   description: string
+  category?: string
+  prompts?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
   frameworkId: string
+  authorId?: string | null
+  isCommunity?: boolean
+  status?: Prisma.ModuleStatusUncheckedCreateNestedOneWithoutModuleInput
+  files?: Prisma.ModuleFileUncheckedCreateNestedManyWithoutModuleInput
+  dependencies?: Prisma.ModuleDependencyUncheckedCreateNestedManyWithoutModuleInput
+  envVars?: Prisma.ModuleEnvVarUncheckedCreateNestedManyWithoutModuleInput
   projects?: Prisma.ProjectModuleUncheckedCreateNestedManyWithoutModuleInput
 }
 
@@ -527,7 +1191,15 @@ export type ModuleUpdateWithoutPresetsInput = {
   id?: Prisma.StringFieldUpdateOperationsInput | string
   name?: Prisma.StringFieldUpdateOperationsInput | string
   description?: Prisma.StringFieldUpdateOperationsInput | string
+  category?: Prisma.StringFieldUpdateOperationsInput | string
+  prompts?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
+  isCommunity?: Prisma.BoolFieldUpdateOperationsInput | boolean
   framework?: Prisma.FrameworkUpdateOneRequiredWithoutModulesNestedInput
+  author?: Prisma.UserUpdateOneWithoutModulesNestedInput
+  status?: Prisma.ModuleStatusUpdateOneWithoutModuleNestedInput
+  files?: Prisma.ModuleFileUpdateManyWithoutModuleNestedInput
+  dependencies?: Prisma.ModuleDependencyUpdateManyWithoutModuleNestedInput
+  envVars?: Prisma.ModuleEnvVarUpdateManyWithoutModuleNestedInput
   projects?: Prisma.ProjectModuleUpdateManyWithoutModuleNestedInput
 }
 
@@ -535,20 +1207,40 @@ export type ModuleUncheckedUpdateWithoutPresetsInput = {
   id?: Prisma.StringFieldUpdateOperationsInput | string
   name?: Prisma.StringFieldUpdateOperationsInput | string
   description?: Prisma.StringFieldUpdateOperationsInput | string
+  category?: Prisma.StringFieldUpdateOperationsInput | string
+  prompts?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
   frameworkId?: Prisma.StringFieldUpdateOperationsInput | string
+  authorId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  isCommunity?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  status?: Prisma.ModuleStatusUncheckedUpdateOneWithoutModuleNestedInput
+  files?: Prisma.ModuleFileUncheckedUpdateManyWithoutModuleNestedInput
+  dependencies?: Prisma.ModuleDependencyUncheckedUpdateManyWithoutModuleNestedInput
+  envVars?: Prisma.ModuleEnvVarUncheckedUpdateManyWithoutModuleNestedInput
   projects?: Prisma.ProjectModuleUncheckedUpdateManyWithoutModuleNestedInput
 }
 
 export type ModuleCreateManyFrameworkInput = {
-  id: string
+  id?: string
   name: string
   description: string
+  category?: string
+  prompts?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
+  authorId?: string | null
+  isCommunity?: boolean
 }
 
 export type ModuleUpdateWithoutFrameworkInput = {
   id?: Prisma.StringFieldUpdateOperationsInput | string
   name?: Prisma.StringFieldUpdateOperationsInput | string
   description?: Prisma.StringFieldUpdateOperationsInput | string
+  category?: Prisma.StringFieldUpdateOperationsInput | string
+  prompts?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
+  isCommunity?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  author?: Prisma.UserUpdateOneWithoutModulesNestedInput
+  status?: Prisma.ModuleStatusUpdateOneWithoutModuleNestedInput
+  files?: Prisma.ModuleFileUpdateManyWithoutModuleNestedInput
+  dependencies?: Prisma.ModuleDependencyUpdateManyWithoutModuleNestedInput
+  envVars?: Prisma.ModuleEnvVarUpdateManyWithoutModuleNestedInput
   projects?: Prisma.ProjectModuleUpdateManyWithoutModuleNestedInput
   presets?: Prisma.PresetModuleUpdateManyWithoutModuleNestedInput
 }
@@ -557,6 +1249,14 @@ export type ModuleUncheckedUpdateWithoutFrameworkInput = {
   id?: Prisma.StringFieldUpdateOperationsInput | string
   name?: Prisma.StringFieldUpdateOperationsInput | string
   description?: Prisma.StringFieldUpdateOperationsInput | string
+  category?: Prisma.StringFieldUpdateOperationsInput | string
+  prompts?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
+  authorId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  isCommunity?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  status?: Prisma.ModuleStatusUncheckedUpdateOneWithoutModuleNestedInput
+  files?: Prisma.ModuleFileUncheckedUpdateManyWithoutModuleNestedInput
+  dependencies?: Prisma.ModuleDependencyUncheckedUpdateManyWithoutModuleNestedInput
+  envVars?: Prisma.ModuleEnvVarUncheckedUpdateManyWithoutModuleNestedInput
   projects?: Prisma.ProjectModuleUncheckedUpdateManyWithoutModuleNestedInput
   presets?: Prisma.PresetModuleUncheckedUpdateManyWithoutModuleNestedInput
 }
@@ -565,6 +1265,62 @@ export type ModuleUncheckedUpdateManyWithoutFrameworkInput = {
   id?: Prisma.StringFieldUpdateOperationsInput | string
   name?: Prisma.StringFieldUpdateOperationsInput | string
   description?: Prisma.StringFieldUpdateOperationsInput | string
+  category?: Prisma.StringFieldUpdateOperationsInput | string
+  prompts?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
+  authorId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  isCommunity?: Prisma.BoolFieldUpdateOperationsInput | boolean
+}
+
+export type ModuleCreateManyAuthorInput = {
+  id?: string
+  name: string
+  description: string
+  category?: string
+  prompts?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
+  frameworkId: string
+  isCommunity?: boolean
+}
+
+export type ModuleUpdateWithoutAuthorInput = {
+  id?: Prisma.StringFieldUpdateOperationsInput | string
+  name?: Prisma.StringFieldUpdateOperationsInput | string
+  description?: Prisma.StringFieldUpdateOperationsInput | string
+  category?: Prisma.StringFieldUpdateOperationsInput | string
+  prompts?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
+  isCommunity?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  framework?: Prisma.FrameworkUpdateOneRequiredWithoutModulesNestedInput
+  status?: Prisma.ModuleStatusUpdateOneWithoutModuleNestedInput
+  files?: Prisma.ModuleFileUpdateManyWithoutModuleNestedInput
+  dependencies?: Prisma.ModuleDependencyUpdateManyWithoutModuleNestedInput
+  envVars?: Prisma.ModuleEnvVarUpdateManyWithoutModuleNestedInput
+  projects?: Prisma.ProjectModuleUpdateManyWithoutModuleNestedInput
+  presets?: Prisma.PresetModuleUpdateManyWithoutModuleNestedInput
+}
+
+export type ModuleUncheckedUpdateWithoutAuthorInput = {
+  id?: Prisma.StringFieldUpdateOperationsInput | string
+  name?: Prisma.StringFieldUpdateOperationsInput | string
+  description?: Prisma.StringFieldUpdateOperationsInput | string
+  category?: Prisma.StringFieldUpdateOperationsInput | string
+  prompts?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
+  frameworkId?: Prisma.StringFieldUpdateOperationsInput | string
+  isCommunity?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  status?: Prisma.ModuleStatusUncheckedUpdateOneWithoutModuleNestedInput
+  files?: Prisma.ModuleFileUncheckedUpdateManyWithoutModuleNestedInput
+  dependencies?: Prisma.ModuleDependencyUncheckedUpdateManyWithoutModuleNestedInput
+  envVars?: Prisma.ModuleEnvVarUncheckedUpdateManyWithoutModuleNestedInput
+  projects?: Prisma.ProjectModuleUncheckedUpdateManyWithoutModuleNestedInput
+  presets?: Prisma.PresetModuleUncheckedUpdateManyWithoutModuleNestedInput
+}
+
+export type ModuleUncheckedUpdateManyWithoutAuthorInput = {
+  id?: Prisma.StringFieldUpdateOperationsInput | string
+  name?: Prisma.StringFieldUpdateOperationsInput | string
+  description?: Prisma.StringFieldUpdateOperationsInput | string
+  category?: Prisma.StringFieldUpdateOperationsInput | string
+  prompts?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
+  frameworkId?: Prisma.StringFieldUpdateOperationsInput | string
+  isCommunity?: Prisma.BoolFieldUpdateOperationsInput | boolean
 }
 
 
@@ -573,11 +1329,17 @@ export type ModuleUncheckedUpdateManyWithoutFrameworkInput = {
  */
 
 export type ModuleCountOutputType = {
+  files: number
+  dependencies: number
+  envVars: number
   projects: number
   presets: number
 }
 
 export type ModuleCountOutputTypeSelect<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
+  files?: boolean | ModuleCountOutputTypeCountFilesArgs
+  dependencies?: boolean | ModuleCountOutputTypeCountDependenciesArgs
+  envVars?: boolean | ModuleCountOutputTypeCountEnvVarsArgs
   projects?: boolean | ModuleCountOutputTypeCountProjectsArgs
   presets?: boolean | ModuleCountOutputTypeCountPresetsArgs
 }
@@ -590,6 +1352,27 @@ export type ModuleCountOutputTypeDefaultArgs<ExtArgs extends runtime.Types.Exten
    * Select specific fields to fetch from the ModuleCountOutputType
    */
   select?: Prisma.ModuleCountOutputTypeSelect<ExtArgs> | null
+}
+
+/**
+ * ModuleCountOutputType without action
+ */
+export type ModuleCountOutputTypeCountFilesArgs<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
+  where?: Prisma.ModuleFileWhereInput
+}
+
+/**
+ * ModuleCountOutputType without action
+ */
+export type ModuleCountOutputTypeCountDependenciesArgs<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
+  where?: Prisma.ModuleDependencyWhereInput
+}
+
+/**
+ * ModuleCountOutputType without action
+ */
+export type ModuleCountOutputTypeCountEnvVarsArgs<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
+  where?: Prisma.ModuleEnvVarWhereInput
 }
 
 /**
@@ -611,8 +1394,17 @@ export type ModuleSelect<ExtArgs extends runtime.Types.Extensions.InternalArgs =
   id?: boolean
   name?: boolean
   description?: boolean
+  category?: boolean
+  prompts?: boolean
   frameworkId?: boolean
+  authorId?: boolean
+  isCommunity?: boolean
   framework?: boolean | Prisma.FrameworkDefaultArgs<ExtArgs>
+  author?: boolean | Prisma.Module$authorArgs<ExtArgs>
+  status?: boolean | Prisma.Module$statusArgs<ExtArgs>
+  files?: boolean | Prisma.Module$filesArgs<ExtArgs>
+  dependencies?: boolean | Prisma.Module$dependenciesArgs<ExtArgs>
+  envVars?: boolean | Prisma.Module$envVarsArgs<ExtArgs>
   projects?: boolean | Prisma.Module$projectsArgs<ExtArgs>
   presets?: boolean | Prisma.Module$presetsArgs<ExtArgs>
   _count?: boolean | Prisma.ModuleCountOutputTypeDefaultArgs<ExtArgs>
@@ -624,12 +1416,21 @@ export type ModuleSelectScalar = {
   id?: boolean
   name?: boolean
   description?: boolean
+  category?: boolean
+  prompts?: boolean
   frameworkId?: boolean
+  authorId?: boolean
+  isCommunity?: boolean
 }
 
-export type ModuleOmit<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = runtime.Types.Extensions.GetOmit<"id" | "name" | "description" | "frameworkId", ExtArgs["result"]["module"]>
+export type ModuleOmit<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = runtime.Types.Extensions.GetOmit<"id" | "name" | "description" | "category" | "prompts" | "frameworkId" | "authorId" | "isCommunity", ExtArgs["result"]["module"]>
 export type ModuleInclude<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
   framework?: boolean | Prisma.FrameworkDefaultArgs<ExtArgs>
+  author?: boolean | Prisma.Module$authorArgs<ExtArgs>
+  status?: boolean | Prisma.Module$statusArgs<ExtArgs>
+  files?: boolean | Prisma.Module$filesArgs<ExtArgs>
+  dependencies?: boolean | Prisma.Module$dependenciesArgs<ExtArgs>
+  envVars?: boolean | Prisma.Module$envVarsArgs<ExtArgs>
   projects?: boolean | Prisma.Module$projectsArgs<ExtArgs>
   presets?: boolean | Prisma.Module$presetsArgs<ExtArgs>
   _count?: boolean | Prisma.ModuleCountOutputTypeDefaultArgs<ExtArgs>
@@ -639,6 +1440,11 @@ export type $ModulePayload<ExtArgs extends runtime.Types.Extensions.InternalArgs
   name: "Module"
   objects: {
     framework: Prisma.$FrameworkPayload<ExtArgs>
+    author: Prisma.$UserPayload<ExtArgs> | null
+    status: Prisma.$ModuleStatusPayload<ExtArgs> | null
+    files: Prisma.$ModuleFilePayload<ExtArgs>[]
+    dependencies: Prisma.$ModuleDependencyPayload<ExtArgs>[]
+    envVars: Prisma.$ModuleEnvVarPayload<ExtArgs>[]
     projects: Prisma.$ProjectModulePayload<ExtArgs>[]
     presets: Prisma.$PresetModulePayload<ExtArgs>[]
   }
@@ -646,7 +1452,11 @@ export type $ModulePayload<ExtArgs extends runtime.Types.Extensions.InternalArgs
     id: string
     name: string
     description: string
+    category: string
+    prompts: runtime.JsonValue | null
     frameworkId: string
+    authorId: string | null
+    isCommunity: boolean
   }, ExtArgs["result"]["module"]>
   composites: {}
 }
@@ -988,6 +1798,11 @@ readonly fields: ModuleFieldRefs;
 export interface Prisma__ModuleClient<T, Null = never, ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs, GlobalOmitOptions = {}> extends Prisma.PrismaPromise<T> {
   readonly [Symbol.toStringTag]: "PrismaPromise"
   framework<T extends Prisma.FrameworkDefaultArgs<ExtArgs> = {}>(args?: Prisma.Subset<T, Prisma.FrameworkDefaultArgs<ExtArgs>>): Prisma.Prisma__FrameworkClient<runtime.Types.Result.GetResult<Prisma.$FrameworkPayload<ExtArgs>, T, "findUniqueOrThrow", GlobalOmitOptions> | Null, Null, ExtArgs, GlobalOmitOptions>
+  author<T extends Prisma.Module$authorArgs<ExtArgs> = {}>(args?: Prisma.Subset<T, Prisma.Module$authorArgs<ExtArgs>>): Prisma.Prisma__UserClient<runtime.Types.Result.GetResult<Prisma.$UserPayload<ExtArgs>, T, "findUniqueOrThrow", GlobalOmitOptions> | null, null, ExtArgs, GlobalOmitOptions>
+  status<T extends Prisma.Module$statusArgs<ExtArgs> = {}>(args?: Prisma.Subset<T, Prisma.Module$statusArgs<ExtArgs>>): Prisma.Prisma__ModuleStatusClient<runtime.Types.Result.GetResult<Prisma.$ModuleStatusPayload<ExtArgs>, T, "findUniqueOrThrow", GlobalOmitOptions> | null, null, ExtArgs, GlobalOmitOptions>
+  files<T extends Prisma.Module$filesArgs<ExtArgs> = {}>(args?: Prisma.Subset<T, Prisma.Module$filesArgs<ExtArgs>>): Prisma.PrismaPromise<runtime.Types.Result.GetResult<Prisma.$ModuleFilePayload<ExtArgs>, T, "findMany", GlobalOmitOptions> | Null>
+  dependencies<T extends Prisma.Module$dependenciesArgs<ExtArgs> = {}>(args?: Prisma.Subset<T, Prisma.Module$dependenciesArgs<ExtArgs>>): Prisma.PrismaPromise<runtime.Types.Result.GetResult<Prisma.$ModuleDependencyPayload<ExtArgs>, T, "findMany", GlobalOmitOptions> | Null>
+  envVars<T extends Prisma.Module$envVarsArgs<ExtArgs> = {}>(args?: Prisma.Subset<T, Prisma.Module$envVarsArgs<ExtArgs>>): Prisma.PrismaPromise<runtime.Types.Result.GetResult<Prisma.$ModuleEnvVarPayload<ExtArgs>, T, "findMany", GlobalOmitOptions> | Null>
   projects<T extends Prisma.Module$projectsArgs<ExtArgs> = {}>(args?: Prisma.Subset<T, Prisma.Module$projectsArgs<ExtArgs>>): Prisma.PrismaPromise<runtime.Types.Result.GetResult<Prisma.$ProjectModulePayload<ExtArgs>, T, "findMany", GlobalOmitOptions> | Null>
   presets<T extends Prisma.Module$presetsArgs<ExtArgs> = {}>(args?: Prisma.Subset<T, Prisma.Module$presetsArgs<ExtArgs>>): Prisma.PrismaPromise<runtime.Types.Result.GetResult<Prisma.$PresetModulePayload<ExtArgs>, T, "findMany", GlobalOmitOptions> | Null>
   /**
@@ -1022,7 +1837,11 @@ export interface ModuleFieldRefs {
   readonly id: Prisma.FieldRef<"Module", 'String'>
   readonly name: Prisma.FieldRef<"Module", 'String'>
   readonly description: Prisma.FieldRef<"Module", 'String'>
+  readonly category: Prisma.FieldRef<"Module", 'String'>
+  readonly prompts: Prisma.FieldRef<"Module", 'Json'>
   readonly frameworkId: Prisma.FieldRef<"Module", 'String'>
+  readonly authorId: Prisma.FieldRef<"Module", 'String'>
+  readonly isCommunity: Prisma.FieldRef<"Module", 'Boolean'>
 }
     
 
@@ -1363,6 +2182,116 @@ export type ModuleDeleteManyArgs<ExtArgs extends runtime.Types.Extensions.Intern
    * Limit how many Modules to delete.
    */
   limit?: number
+}
+
+/**
+ * Module.author
+ */
+export type Module$authorArgs<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
+  /**
+   * Select specific fields to fetch from the User
+   */
+  select?: Prisma.UserSelect<ExtArgs> | null
+  /**
+   * Omit specific fields from the User
+   */
+  omit?: Prisma.UserOmit<ExtArgs> | null
+  /**
+   * Choose, which related nodes to fetch as well
+   */
+  include?: Prisma.UserInclude<ExtArgs> | null
+  where?: Prisma.UserWhereInput
+}
+
+/**
+ * Module.status
+ */
+export type Module$statusArgs<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
+  /**
+   * Select specific fields to fetch from the ModuleStatus
+   */
+  select?: Prisma.ModuleStatusSelect<ExtArgs> | null
+  /**
+   * Omit specific fields from the ModuleStatus
+   */
+  omit?: Prisma.ModuleStatusOmit<ExtArgs> | null
+  /**
+   * Choose, which related nodes to fetch as well
+   */
+  include?: Prisma.ModuleStatusInclude<ExtArgs> | null
+  where?: Prisma.ModuleStatusWhereInput
+}
+
+/**
+ * Module.files
+ */
+export type Module$filesArgs<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
+  /**
+   * Select specific fields to fetch from the ModuleFile
+   */
+  select?: Prisma.ModuleFileSelect<ExtArgs> | null
+  /**
+   * Omit specific fields from the ModuleFile
+   */
+  omit?: Prisma.ModuleFileOmit<ExtArgs> | null
+  /**
+   * Choose, which related nodes to fetch as well
+   */
+  include?: Prisma.ModuleFileInclude<ExtArgs> | null
+  where?: Prisma.ModuleFileWhereInput
+  orderBy?: Prisma.ModuleFileOrderByWithRelationInput | Prisma.ModuleFileOrderByWithRelationInput[]
+  cursor?: Prisma.ModuleFileWhereUniqueInput
+  take?: number
+  skip?: number
+  distinct?: Prisma.ModuleFileScalarFieldEnum | Prisma.ModuleFileScalarFieldEnum[]
+}
+
+/**
+ * Module.dependencies
+ */
+export type Module$dependenciesArgs<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
+  /**
+   * Select specific fields to fetch from the ModuleDependency
+   */
+  select?: Prisma.ModuleDependencySelect<ExtArgs> | null
+  /**
+   * Omit specific fields from the ModuleDependency
+   */
+  omit?: Prisma.ModuleDependencyOmit<ExtArgs> | null
+  /**
+   * Choose, which related nodes to fetch as well
+   */
+  include?: Prisma.ModuleDependencyInclude<ExtArgs> | null
+  where?: Prisma.ModuleDependencyWhereInput
+  orderBy?: Prisma.ModuleDependencyOrderByWithRelationInput | Prisma.ModuleDependencyOrderByWithRelationInput[]
+  cursor?: Prisma.ModuleDependencyWhereUniqueInput
+  take?: number
+  skip?: number
+  distinct?: Prisma.ModuleDependencyScalarFieldEnum | Prisma.ModuleDependencyScalarFieldEnum[]
+}
+
+/**
+ * Module.envVars
+ */
+export type Module$envVarsArgs<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
+  /**
+   * Select specific fields to fetch from the ModuleEnvVar
+   */
+  select?: Prisma.ModuleEnvVarSelect<ExtArgs> | null
+  /**
+   * Omit specific fields from the ModuleEnvVar
+   */
+  omit?: Prisma.ModuleEnvVarOmit<ExtArgs> | null
+  /**
+   * Choose, which related nodes to fetch as well
+   */
+  include?: Prisma.ModuleEnvVarInclude<ExtArgs> | null
+  where?: Prisma.ModuleEnvVarWhereInput
+  orderBy?: Prisma.ModuleEnvVarOrderByWithRelationInput | Prisma.ModuleEnvVarOrderByWithRelationInput[]
+  cursor?: Prisma.ModuleEnvVarWhereUniqueInput
+  take?: number
+  skip?: number
+  distinct?: Prisma.ModuleEnvVarScalarFieldEnum | Prisma.ModuleEnvVarScalarFieldEnum[]
 }
 
 /**

@@ -1,0 +1,16 @@
+{
+  "version": "1.0.0",
+  "framework": "nuxt",
+  "modules": [
+    {
+      "id": "email",
+      "installedAt": "2026-02-10T08:39:04.760Z",
+      "answers": {
+        "mailhog": false
+      }
+    }
+  ],
+  "packageManager": "npm",
+  "createdAt": "2026-02-10T08:39:04.760Z",
+  "updatedAt": "2026-02-10T08:39:04.760Z"
+}

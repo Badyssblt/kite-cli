@@ -10,6 +10,10 @@
  */
 export type * from './models/Framework.js'
 export type * from './models/Module.js'
+export type * from './models/ModuleStatus.js'
+export type * from './models/ModuleFile.js'
+export type * from './models/ModuleDependency.js'
+export type * from './models/ModuleEnvVar.js'
 export type * from './models/Project.js'
 export type * from './models/ProjectModule.js'
 export type * from './models/User.js'

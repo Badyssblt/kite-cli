@@ -1,8 +1,9 @@
 <script setup lang="ts">
-import { ref, computed, watch, onMounted, nextTick } from 'vue';
+import { ref, computed, watch, onMounted } from 'vue';
 import { toast } from 'vue-sonner';
-import { Download, Github, ChevronDown, Lock, Globe } from 'lucide-vue-next';
+import { Download, Github, ChevronDown, Lock, Globe, ArrowLeft } from 'lucide-vue-next';
 import { Button } from '@/components/ui/button';
+import { Badge } from '@/components/ui/badge';
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -23,26 +24,51 @@ import { Switch } from '@/components/ui/switch';
 import Explorer from './Explorer.vue';
 import FilePreview from './FilePreview.vue';
 import ConfigPanel from './ConfigPanel.vue';
+import ModuleConfigSheet from './ModuleConfigSheet.vue';
 import StatusBar from './StatusBar.vue';
 import type { TreeNode, OpenFile, Framework, Preset } from './types';
 
 const props = defineProps<{
   frameworks: Framework[];
   presets: Preset[];
+  initialPresetId?: string | null;
+  initialFrameworkId: string;
 }>();
+
+const emit = defineEmits<{ back: [] }>();
 
 // State
 const projectName = ref('my-project');
-const selectedFrameworkId = ref('');
+const packageManager = ref(import.meta.client ? (localStorage.getItem('kite-default-pm') || 'npm') : 'npm');
+const selectedFrameworkId = ref(props.initialFrameworkId);
 const selectedModules = ref<string[]>([]);
-const activePresetId = ref<string | null>(null);
-const isPresetChange = ref(false);
+const moduleAnswers = ref<Record<string, Record<string, string | boolean>>>({});
 const fileTree = ref<TreeNode | null>(null);
 const isLoadingTree = ref(false);
 const openFile = ref<OpenFile | null>(null);
 const isLoadingFile = ref(false);
 const selectedFilePath = ref<string | undefined>();
 const isCreating = ref(false);
+const showConfigSheet = ref(false);
+
+// Apply initial preset if provided (once)
+if (props.initialPresetId) {
+  const preset = props.presets.find(p => p.id === props.initialPresetId);
+  if (preset) {
+    const fw = props.frameworks.find(f => f.id === selectedFrameworkId.value);
+    const fwModuleIds = fw ? fw.modules.map(m => m.id) : [];
+    selectedModules.value = preset.modules.filter(m => fwModuleIds.includes(m));
+    moduleAnswers.value = preset.answers ? { ...preset.answers } : {};
+  }
+}
+
+const configurableModules = computed(() => {
+  const fw = props.frameworks.find(f => f.id === selectedFrameworkId.value);
+  if (!fw) return [];
+  return fw.modules.filter(
+    m => selectedModules.value.includes(m.id) && m.prompts?.length
+  );
+});
 
 // GitHub state
 const isGithubConnected = ref(false);
@@ -90,62 +116,12 @@ function countFiles(node: TreeNode): number {
   return (node.children || []).reduce((acc, child) => acc + countFiles(child), 0);
 }
 
-// When a preset is selected, apply its framework and modules
-watch(activePresetId, (presetId) => {
-  if (!presetId) return;
-
-  const preset = props.presets.find((p) => p.id === presetId);
-  if (!preset) return;
-
-  isPresetChange.value = true;
-
-  const frameworkId = preset.frameworks.length ? preset.frameworks[0] : selectedFrameworkId.value;
-  const fw = props.frameworks.find((f) => f.id === frameworkId);
-  const fwModuleIds = fw ? fw.modules.map((m) => m.id) : [];
-  const presetModules = preset.modules.filter((m) => fwModuleIds.includes(m));
-
-  selectedFrameworkId.value = frameworkId;
-  selectedModules.value = presetModules;
+// When framework changes: reset modules + clear file/preview
+watch(selectedFrameworkId, (_newVal, oldVal) => {
+  if (!oldVal) return;
   openFile.value = null;
   selectedFilePath.value = undefined;
-
-  nextTick(() => {
-    isPresetChange.value = false;
-  });
-});
-
-// When framework changes: reapply preset modules if preset active, otherwise reset
-watch(selectedFrameworkId, (newVal, oldVal) => {
-  if (isPresetChange.value) return;
-
-  openFile.value = null;
-  selectedFilePath.value = undefined;
-
-  if (activePresetId.value) {
-    // Preset active: reapply its modules for the new framework
-    const preset = props.presets.find((p) => p.id === activePresetId.value);
-    if (preset) {
-      isPresetChange.value = true;
-      const fw = props.frameworks.find((f) => f.id === newVal);
-      const fwModuleIds = fw ? fw.modules.map((m) => m.id) : [];
-      selectedModules.value = preset.modules.filter((m) => fwModuleIds.includes(m));
-      nextTick(() => {
-        isPresetChange.value = false;
-      });
-      return;
-    }
-  }
-
   selectedModules.value = [];
-  if (oldVal) {
-    activePresetId.value = null;
-  }
-});
-
-// Reset active preset when modules are changed manually
-watch(selectedModules, () => {
-  if (isPresetChange.value) return;
-  activePresetId.value = null;
 });
 
 // Fetch file tree
@@ -242,6 +218,8 @@ async function pushToGithub() {
         projectName: projectName.value,
         framework: selectedFrameworkId.value,
         modules: selectedModules.value,
+        answers: Object.keys(moduleAnswers.value).length > 0 ? moduleAnswers.value : undefined,
+        packageManager: packageManager.value,
         repoName: repoName.value,
         isPrivate: isPrivateRepo.value,
       },
@@ -278,7 +256,9 @@ async function downloadProject() {
       body: JSON.stringify({
         projectName: projectName.value,
         framework: selectedFrameworkId.value,
-        modules: selectedModules.value
+        modules: selectedModules.value,
+        answers: Object.keys(moduleAnswers.value).length > 0 ? moduleAnswers.value : undefined,
+        packageManager: packageManager.value,
       })
     });
 
@@ -317,10 +297,13 @@ async function downloadProject() {
     <!-- Header -->
     <div class="flex items-center justify-between px-4 py-2 border-b bg-muted/30">
       <div class="flex items-center gap-2">
+        <Button variant="ghost" size="icon" class="size-7" @click="emit('back')">
+          <ArrowLeft class="size-4" />
+        </Button>
+        <Badge variant="outline" class="text-xs">
+          {{ frameworks.find(f => f.id === selectedFrameworkId)?.name }}
+        </Badge>
         <span class="text-sm font-medium">{{ projectName || 'my-project' }}</span>
-        <span class="text-xs text-muted-foreground">
-          {{ selectedFrameworkId ? `• ${selectedFrameworkId}` : '' }}
-        </span>
       </div>
 
       <!-- GitHub connected: show dropdown with both options -->
@@ -444,15 +427,22 @@ async function downloadProject() {
           :selected-framework-id="selectedFrameworkId"
           :selected-modules="selectedModules"
           :project-name="projectName"
-          :presets="presets"
-          :active-preset-id="activePresetId"
+          :package-manager="packageManager"
           @update:project-name="projectName = $event"
-          @update:selected-framework-id="selectedFrameworkId = $event"
+          @update:package-manager="packageManager = $event"
           @update:selected-modules="selectedModules = $event"
-          @update:active-preset-id="activePresetId = $event"
+          @open-config="showConfigSheet = true"
         />
       </div>
     </div>
+
+    <!-- Module Config Sheet -->
+    <ModuleConfigSheet
+      v-model:open="showConfigSheet"
+      v-model:module-answers="moduleAnswers"
+      :modules="configurableModules"
+      :selected-modules="selectedModules"
+    />
 
     <!-- Status Bar -->
     <StatusBar

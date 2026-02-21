@@ -1,19 +1,50 @@
 import { auth } from "~~/lib/auth";
 import { prisma } from "~~/server/utils/db";
-import { exec } from "child_process";
-import { promisify } from "util";
+import { spawn, execSync } from "child_process";
 import fs from "fs";
 import path from "path";
 import os from "os";
-
-const execAsync = promisify(exec);
 
 interface PushBody {
   projectName: string;
   framework: string;
   modules: string[];
+  answers?: Record<string, Record<string, string | boolean>>;
+  packageManager?: string;
   repoName: string;
   isPrivate: boolean;
+}
+
+function sanitize(input: string): string {
+  return input.replace(/[^a-zA-Z0-9\-_.]/g, '');
+}
+
+function runCli(args: string[], cwd: string): Promise<{ stdout: string; stderr: string }> {
+  return new Promise((resolve, reject) => {
+    const child = spawn('npx', ['ts-node', 'src/index.ts', ...args], {
+      cwd,
+      timeout: 120000,
+      env: { ...process.env },
+    });
+
+    let stdout = '';
+    let stderr = '';
+
+    child.stdout.on('data', (data) => { stdout += data.toString(); });
+    child.stderr.on('data', (data) => { stderr += data.toString(); });
+
+    child.on('close', (code) => {
+      if (code === 0) {
+        resolve({ stdout, stderr });
+      } else {
+        const error = new Error(`CLI exited with code ${code}`) as Error & { stderr: string };
+        error.stderr = stderr;
+        reject(error);
+      }
+    });
+
+    child.on('error', reject);
+  });
 }
 
 export default defineEventHandler(async (event) => {
@@ -23,7 +54,6 @@ export default defineEventHandler(async (event) => {
     throw createError({ statusCode: 401, message: "Unauthorized" });
   }
 
-  // Get GitHub account
   const githubAccount = await prisma.account.findFirst({
     where: {
       userId: session.user.id,
@@ -72,26 +102,43 @@ export default defineEventHandler(async (event) => {
   const projectDir = path.join(tempDir, body.projectName);
 
   try {
-    // Create temp directory
     fs.mkdirSync(tempDir, { recursive: true });
 
-    // Build CLI command
-    const cliPath = path.resolve(process.cwd(), "..");
-    const modulesArg =
-      body.modules.length > 0
-        ? `--modules ${body.modules.map((m) => `"${m}"`).join(" ")}`
-        : "";
+    const cliPath = process.env.KITE_CLI_PATH || '/cli';
+    // Module IDs from DB are composite (e.g. "nextjs-better-auth")
+    // but CLI expects simple IDs (e.g. "better-auth")
+    const frameworkPrefix = body.framework + '-';
+    const simpleModules = body.modules.map(m => m.startsWith(frameworkPrefix) ? m.slice(frameworkPrefix.length) : m);
+    const modulesStr = simpleModules.length > 0 ? simpleModules.map(sanitize).join(',') : 'none';
 
-    const command = `cd "${cliPath}" && npx ts-node src/index.ts create --name "${body.projectName}" --framework "${body.framework}" ${modulesArg} --json --no-install --output "${tempDir}"`;
+    const args = [
+      'create',
+      '--name', sanitize(body.projectName),
+      '--framework', sanitize(body.framework),
+      '--modules', modulesStr,
+      '--json',
+      '--no-install',
+      '--output', tempDir,
+    ];
 
-    // Execute CLI to create project
-    await execAsync(command, { timeout: 120000 });
+    if (body.packageManager) {
+      args.push('--pm', sanitize(body.packageManager));
+    }
 
-    // Initialize git and push to GitHub
+    if (body.answers && Object.keys(body.answers).length > 0) {
+      const cliAnswers: Record<string, any> = {};
+      for (const [key, value] of Object.entries(body.answers)) {
+        const simpleKey = key.startsWith(frameworkPrefix) ? key.slice(frameworkPrefix.length) : key;
+        cliAnswers[simpleKey] = value;
+      }
+      args.push('--answers', JSON.stringify(cliAnswers));
+    }
+
+    await runCli(args, cliPath);
+
     const token = githubAccount.accessToken;
     const visibility = body.isPrivate ? "private" : "public";
 
-    // Create GitHub repo using API
     const createRepoResponse = await fetch("https://api.github.com/user/repos", {
       method: "POST",
       headers: {
@@ -109,7 +156,6 @@ export default defineEventHandler(async (event) => {
     if (!createRepoResponse.ok) {
       const errorData = await createRepoResponse.json();
 
-      // Check if repo already exists
       if (createRepoResponse.status === 422 && errorData.errors?.some((e: any) => e.message?.includes("already exists"))) {
         throw createError({
           statusCode: 409,
@@ -127,20 +173,18 @@ export default defineEventHandler(async (event) => {
     const repoOwner = repoData?.owner?.login;
     const repoUrl = `https://x-access-token:${encodeURIComponent(token)}@github.com/${repoOwner}/${body.repoName}.git`;
 
-    // Initialize git, add files, commit and push
-    const gitCommands = [
-      `cd "${projectDir}"`,
-      "git init",
-      "git add .",
-      'git commit -m "Initial commit - Generated with Kite CLI"',
-      "git branch -M main",
-      `git remote add origin "${repoUrl}"`,
-      "git push -u origin main",
-    ].join(" && ");
+    execSync(
+      [
+        "git init",
+        "git add .",
+        'git commit -m "Initial commit - Generated with Kite CLI"',
+        "git branch -M main",
+        `git remote add origin "${repoUrl}"`,
+        "git push -u origin main",
+      ].join(" && "),
+      { cwd: projectDir, timeout: 60000 }
+    );
 
-    await execAsync(gitCommands, { timeout: 60000 });
-
-    // Save project to database
     await prisma.project.create({
       data: {
         name: body.projectName,
@@ -155,7 +199,6 @@ export default defineEventHandler(async (event) => {
       },
     });
 
-    // Cleanup
     fs.rmSync(tempDir, { recursive: true, force: true });
 
     return {
@@ -165,7 +208,6 @@ export default defineEventHandler(async (event) => {
       visibility,
     };
   } catch (err: any) {
-    // Cleanup on error
     if (fs.existsSync(tempDir)) {
       fs.rmSync(tempDir, { recursive: true, force: true });
     }
